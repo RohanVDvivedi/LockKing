@@ -17,8 +17,6 @@ struct rwlock
 
 	pthread_mutex_t internal_protector;
 
-	pthread_mutex_t protector;
-
 	pthread_cond_t read_wait;
 	pthread_cond_t write_wait;
 };

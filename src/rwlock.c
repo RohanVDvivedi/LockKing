@@ -8,7 +8,6 @@ rwlock* get_rwlock()
 	rwlock_p->writer_threads_waiting = 0;
 	rwlock_p->writing_threads = 0;
 	pthread_mutex_init(&(rwlock_p->internal_protector), NULL);
-	pthread_mutex_init(&(rwlock_p->protector), NULL);
 	pthread_cond_init(&(rwlock_p->read_wait), NULL);
 	pthread_cond_init(&(rwlock_p->write_wait), NULL);
 	return rwlock_p;
@@ -22,14 +21,8 @@ void read_lock(rwlock* rwlock_p)
 	while(rwlock_p->writing_threads > 0)
 	{
 		rwlock_p->reader_threads_waiting++;
-		pthread_cond_wait(&(rwlock_p->read_wait), &(rwlock_p->protector));
+		pthread_cond_wait(&(rwlock_p->read_wait), &(rwlock_p->internal_protector));
 		rwlock_p->reader_threads_waiting--;
-	}
-
-	// if there are no reading threads, take the lock so, no writers can now proceed
-	if(rwlock_p->reading_threads == 0)
-	{
-		pthread_mutex_lock(&(rwlock_p->protector));
 	}
 
 	// increment the number of reading threads
@@ -45,17 +38,12 @@ void read_unlock(rwlock* rwlock_p)
 	// decrement the number of reading threads
 	rwlock_p->reading_threads--;
 
-	// if there are no reading threads, release the protector, so writers can proceed
-	if(rwlock_p->reading_threads == 0)
+	// if this is the last read thread, and hence it is mandatory that reader_threads_waiting = 0
+	// because otherwise they would have already entered,
+	// so if there are any waiting writer threads, we would just, wake one of them up
+	if(rwlock_p->reading_threads == 0 && rwlock_p->writer_threads_waiting > 0)
 	{
-		// if this is the last read thread, and hence it is mandatory that reader_threads_waiting = 0
-		// because otherwise they would have already entered, so if there are any waiting writer threads, we would just, wake one of them up
-		if(rwlock_p->writer_threads_waiting > 0)
-		{
-			pthread_cond_signal(&(rwlock_p->write_wait));
-		}
-
-		pthread_mutex_unlock(&(rwlock_p->protector));
+		pthread_cond_signal(&(rwlock_p->write_wait));
 	}
 
 	pthread_mutex_unlock(&(rwlock_p->internal_protector));
@@ -69,12 +57,9 @@ void write_lock(rwlock* rwlock_p)
 	while(rwlock_p->reading_threads + rwlock_p->writing_threads > 0)
 	{
 		rwlock_p->writer_threads_waiting++;
-		pthread_cond_wait(&(rwlock_p->write_wait), &(rwlock_p->protector));
+		pthread_cond_wait(&(rwlock_p->write_wait), &(rwlock_p->internal_protector));
 		rwlock_p->writer_threads_waiting--;
 	}
-
-	// acquire the lock, to write, writers get exclusive control, over the lock
-	pthread_mutex_lock(&(rwlock_p->protector));
 
 	// increase the number, of writing threads
 	rwlock_p->writing_threads++;
@@ -100,9 +85,6 @@ void write_unlock(rwlock* rwlock_p)
 		pthread_cond_broadcast(&(rwlock_p->read_wait));
 	}
 
-	// release the protector, so other writers or readers can proceed
-	pthread_mutex_unlock(&(rwlock_p->protector));
-
 	pthread_mutex_unlock(&(rwlock_p->internal_protector));
 }
 
@@ -114,7 +96,6 @@ int delete_rwlock(rwlock* rwlock_p)
 		return -1;
 	}
 	pthread_mutex_destroy(&(rwlock_p->internal_protector));
-	pthread_mutex_destroy(&(rwlock_p->protector));
 	pthread_cond_destroy(&(rwlock_p->read_wait));
 	pthread_cond_destroy(&(rwlock_p->write_wait));
 	free(rwlock_p);
