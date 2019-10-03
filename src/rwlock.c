@@ -17,8 +17,9 @@ void read_lock(rwlock* rwlock_p)
 {
 	pthread_mutex_lock(&(rwlock_p->internal_protector));
 
-	// if writers already have the lock, we go for a wait
-	while(rwlock_p->writing_threads > 0)
+	// if writers already have the lock, or they want the lock, we go for a wait,
+	// so basically if any writer is writing or wants to write, we go to wait
+	while(rwlock_p->writing_threads + rwlock_p->writer_threads_waiting > 0)
 	{
 		rwlock_p->reader_threads_waiting++;
 		pthread_cond_wait(&(rwlock_p->read_wait), &(rwlock_p->internal_protector));

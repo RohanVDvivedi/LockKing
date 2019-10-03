@@ -9,11 +9,11 @@
 typedef struct rwlock rwlock;
 struct rwlock
 {
-	unsigned int reader_threads_waiting;
-	unsigned int reading_threads;
+	unsigned int reader_threads_waiting;	// [ 0 .. INT_MAX ] 
+	unsigned int reading_threads;			// [ 0 .. INT_MAX ] 
 
-	unsigned int writer_threads_waiting;
-	unsigned int writing_threads;
+	unsigned int writer_threads_waiting;	// [ 0 .. INT_MAX ] 
+	unsigned int writing_threads;			// [ 0 .. 1 ] 
 
 	pthread_mutex_t internal_protector;
 
