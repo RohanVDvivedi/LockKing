@@ -23,6 +23,7 @@ struct rwlock
 
 rwlock* get_rwlock();
 
+// functionality for reader writer lock
 void read_lock(rwlock* rwlock_p);
 
 void read_unlock(rwlock* rwlock_p);
@@ -30,6 +31,15 @@ void read_unlock(rwlock* rwlock_p);
 void write_lock(rwlock* rwlock_p);
 
 void write_unlock(rwlock* rwlock_p);
+
+// necessary getters to micromanage the reader lock lock from outside
+unsigned int get_readers_count(rwlock* rwlock_p);
+
+unsigned int get_writers_count(rwlock* rwlock_p);
+
+unsigned int get_waiting_readers_count(rwlock* rwlock_p);
+
+unsigned int get_waiting_writers_count(rwlock* rwlock_p);
 
 // if some one is already holding a read or write lock, we can not delete the lock
 // if we could not delete the lock, it function returns -1, else 0

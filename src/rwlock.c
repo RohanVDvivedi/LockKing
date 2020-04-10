@@ -89,6 +89,50 @@ void write_unlock(rwlock* rwlock_p)
 	pthread_mutex_unlock(&(rwlock_p->internal_protector));
 }
 
+unsigned int get_readers_count(rwlock* rwlock_p)
+{
+	pthread_mutex_lock(&(rwlock_p->internal_protector));
+
+	unsigned int count = rwlock_p->reading_threads;
+
+	pthread_mutex_unlock(&(rwlock_p->internal_protector));
+
+	return count;
+}
+
+unsigned int get_writers_count(rwlock* rwlock_p)
+{
+	pthread_mutex_lock(&(rwlock_p->internal_protector));
+
+	unsigned int count = rwlock_p->writing_threads;
+
+	pthread_mutex_unlock(&(rwlock_p->internal_protector));
+
+	return count;
+}
+
+unsigned int get_waiting_readers_count(rwlock* rwlock_p)
+{
+	pthread_mutex_lock(&(rwlock_p->internal_protector));
+
+	unsigned int count = rwlock_p->reader_threads_waiting;
+
+	pthread_mutex_unlock(&(rwlock_p->internal_protector));
+
+	return count;
+}
+
+unsigned int get_waiting_writers_count(rwlock* rwlock_p)
+{
+	pthread_mutex_lock(&(rwlock_p->internal_protector));
+
+	unsigned int count = rwlock_p->writer_threads_waiting;
+
+	pthread_mutex_unlock(&(rwlock_p->internal_protector));
+
+	return count;
+}
+
 int delete_rwlock(rwlock* rwlock_p)
 {
 	// we can not exit, if any thread is operating on the data
