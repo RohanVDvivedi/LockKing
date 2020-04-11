@@ -133,6 +133,18 @@ unsigned int get_waiting_writers_count(rwlock* rwlock_p)
 	return count;
 }
 
+unsigned int get_total_thread_count(rwlock* rwlock_p)
+{
+	pthread_mutex_lock(&(rwlock_p->internal_protector));
+
+	unsigned int count = rwlock_p->reading_threads + rwlock_p->writing_threads 
+	 + rwlock_p->reader_threads_waiting + rwlock_p->writer_threads_waiting;
+
+	pthread_mutex_unlock(&(rwlock_p->internal_protector));
+
+	return count;
+}
+
 int delete_rwlock(rwlock* rwlock_p)
 {
 	// we can not exit, if any thread is operating on the data

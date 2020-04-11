@@ -41,6 +41,8 @@ unsigned int get_waiting_readers_count(rwlock* rwlock_p);
 
 unsigned int get_waiting_writers_count(rwlock* rwlock_p);
 
+unsigned int get_total_thread_count(rwlock* rwlock_p);
+
 // if some one is already holding a read or write lock, we can not delete the lock
 // if we could not delete the lock, it function returns -1, else 0
 int delete_rwlock(rwlock* rwlock_p);
