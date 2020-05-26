@@ -3,6 +3,12 @@
 rwlock* get_rwlock()
 {
 	rwlock* rwlock_p = malloc(sizeof(rwlock));
+	initialize_rwlock(rwlock_p);
+	return rwlock_p;
+}
+
+void initialize_rwlock(rwlock* rwlock_p)
+{
 	rwlock_p->reader_threads_waiting = 0;
 	rwlock_p->reading_threads = 0;
 	rwlock_p->writer_threads_waiting = 0;
@@ -10,7 +16,6 @@ rwlock* get_rwlock()
 	pthread_mutex_init(&(rwlock_p->internal_protector), NULL);
 	pthread_cond_init(&(rwlock_p->read_wait), NULL);
 	pthread_cond_init(&(rwlock_p->write_wait), NULL);
-	return rwlock_p;
 }
 
 void read_lock(rwlock* rwlock_p)
@@ -145,16 +150,26 @@ unsigned int get_total_thread_count(rwlock* rwlock_p)
 	return count;
 }
 
-int delete_rwlock(rwlock* rwlock_p)
+int deinitialize_rwlock(rwlock* rwlock_p)
 {
 	// we can not exit, if any thread is operating on the data
-	if(rwlock_p->reading_threads + rwlock_p->writing_threads > 0)
+	if(rwlock_p->reading_threads + rwlock_p->writing_threads + 
+		rwlock_p->reader_threads_waiting + rwlock_p->writer_threads_waiting > 0)
 	{
 		return -1;
 	}
 	pthread_mutex_destroy(&(rwlock_p->internal_protector));
 	pthread_cond_destroy(&(rwlock_p->read_wait));
 	pthread_cond_destroy(&(rwlock_p->write_wait));
-	free(rwlock_p);
 	return 0;
+}
+
+int delete_rwlock(rwlock* rwlock_p)
+{
+	if(deinitialize_rwlock(rwlock_p) == 0)
+	{
+		free(rwlock_p);
+		return 0;
+	}
+	return -1;
 }

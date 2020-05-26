@@ -23,6 +23,8 @@ struct rwlock
 
 rwlock* get_rwlock();
 
+void initialize_rwlock(rwlock* rwlock_p);
+
 // functionality for reader writer lock
 void read_lock(rwlock* rwlock_p);
 
@@ -43,8 +45,9 @@ unsigned int get_waiting_writers_count(rwlock* rwlock_p);
 
 unsigned int get_total_thread_count(rwlock* rwlock_p);
 
-// if some one is already holding a read or write lock, we can not delete the lock
+// if some one is already holding a read or write lock, we can not delete or deinitialize the lock
 // if we could not delete the lock, it function returns -1, else 0
+int deinitialize_rwlock(rwlock* rwlock_p);
 int delete_rwlock(rwlock* rwlock_p);
 
 #endif
