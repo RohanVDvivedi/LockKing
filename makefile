@@ -16,7 +16,7 @@ OBJECTS:=$(patsubst $(SRC_DIR)%.c,$(OBJ_DIR)%.o,${SOURCES})
 TARGET:=${BIN_DIR}/librwlock.a
 
 # place your include directories -I flag here
-CFLAGS=-Wall -I${INC_DIR}
+CFLAGS=-Wall -O3 -I${INC_DIR}
 
 # rule to make the object directory
 ${OBJ_DIR} :
@@ -35,11 +35,14 @@ $(TARGET) : ${OBJECTS} | ${BIN_DIR}
 	ar rcs $@ ${OBJECTS}
 
 # just build the target
-all: $(TARGET)
+all : $(TARGET)
 
-# clean all the build
+# clean all the build, in this directory
+# does not remove the existing installation
 clean :
 	$(RM) -r $(BIN_DIR) $(OBJ_DIR)
 
-path : 
-	@echo "export RWLOCK_PATH=\`pwd\`"
+# install the library, from this directory to user environment path
+install : all
+	cp ${INC_DIR}/* /usr/local/include
+	cp ${BIN_DIR}/* /usr/local/lib
