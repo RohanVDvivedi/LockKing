@@ -20,7 +20,7 @@ BINARY:=${BIN_DIR}/rwlock.out
 # compiler flags
 CFLAGS=-Wall -O3 -I${INC_DIR}
 # linker flags, this will used to compile the binary
-LFLAGS=-lrwlock -lpthread
+LFLAGS=-L${LIB_DIR} -lrwlock -lpthread
 
 # rule to make the object directory
 ${OBJ_DIR} :
