@@ -5,4 +5,4 @@ setup instructions
  * git clone https://github.com/RohanVDvivedi/ReaderWriterLock.git
  * cd ReaderWriterLock
  * sudo make clean install
- * add "-lrwlock" linker flag, while compiling your application
+ * add "-lrwlock -lpthread" linker flag, while compiling your application
