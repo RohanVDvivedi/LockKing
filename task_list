@@ -1,5 +1,4 @@
- * need downgrade functionality to downgrade a lock from writer to reader.
- * build a ruw_lock, this is reader lock, upgradable reader lock and writer lock
+ * build a ""NEW"" ruw_lock, this is reader lock, upgradable reader lock and writer lock
    states => 	R = reader lock => do not change data
    				U = upgradable lock => do not change data
    				W = writer lock => data can be modified
