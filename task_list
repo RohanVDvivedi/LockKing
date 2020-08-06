@@ -1,0 +1,22 @@
+ * need downgrade functionality to downgrade a lock from writer to reader.
+ * build a ruw_lock, this is reader lock, upgradable reader lock and writer lock
+   states => 	R = reader lock => do not change data
+   				U = upgradable lock => do not change data
+   				W = writer lock => data can be modified
+
+   transitions allowed N = no lock
+   N -> R|U|W
+   R|U|N -> N
+
+   U -> W
+
+   W -> U 	basically a downgrade
+   U -> R 	basically a downgrade
+   W -> R 	basically a downgrade
+
+   There can only be one writer or upgradable reader thread
+   Other Readers can coexist with upgradable reader,
+   Readers can not be upgraded what so ever, only upgradable readers can be promoted to become writers
+
+   There is waiting for new readers, new upgradable readers and new writers
+   There is no waiting state for any transitions between them
