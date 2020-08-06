@@ -24,7 +24,7 @@ void read_lock(rwlock* rwlock_p)
 
 	// if writers already have the lock, or they want the lock, we go for a wait,
 	// so basically if any writer is writing or wants to write, we go to wait
-	while(rwlock_p->writing_threads + rwlock_p->writer_threads_waiting > 0)
+	while(rwlock_p->writing_threads > 0 || (rwlock_p->reading_threads == 0 && rwlock_p->writer_threads_waiting > 0))
 	{
 		rwlock_p->reader_threads_waiting++;
 		pthread_cond_wait(&(rwlock_p->read_wait), &(rwlock_p->internal_protector));
@@ -36,6 +36,16 @@ void read_lock(rwlock* rwlock_p)
 
 	pthread_mutex_unlock(&(rwlock_p->internal_protector));
 }
+
+/*
+		Policy defined when shall a reader take the lock
+		Mandatory condition, There must be no thread writing
+
+							writer_threads_waiting 		==0						>0
+		reading_threads
+				==0									take read lock 				wait
+				>0 									take read lock 			take read lock
+*/
 
 void read_unlock(rwlock* rwlock_p)
 {
@@ -87,6 +97,25 @@ void write_unlock(rwlock* rwlock_p)
 	}
 	// else we wake up all the reading threads
 	else if(rwlock_p->reader_threads_waiting > 0)
+	{
+		pthread_cond_broadcast(&(rwlock_p->read_wait));
+	}
+
+	pthread_mutex_unlock(&(rwlock_p->internal_protector));
+}
+
+void downgrade_writer_to_reader_lock(rwlock* rwlock_p)
+{
+	pthread_mutex_lock(&(rwlock_p->internal_protector));
+
+	// you must be a writer to call this function
+	rwlock_p->writing_threads--;
+
+	// count your self in as a reader
+	rwlock_p->reading_threads++;
+
+	// else we wake up all the reading threads
+	if(rwlock_p->reader_threads_waiting > 0)
 	{
 		pthread_cond_broadcast(&(rwlock_p->read_wait));
 	}

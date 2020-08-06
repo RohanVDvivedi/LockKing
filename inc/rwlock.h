@@ -34,6 +34,12 @@ void write_lock(rwlock* rwlock_p);
 
 void write_unlock(rwlock* rwlock_p);
 
+// downgrade lock functionality, if you have already hold a writer lock using the write_lock function
+// you can convert your lock to reader lock by calling the below function
+// Note : remember you can not convert back from a writer to a reader
+// Note : you must have write lock (acquired through write_lock(rwlock*) function), to call this function 
+void downgrade_writer_to_reader_lock(rwlock* rwlock_p);
+
 // necessary getters to micromanage the reader lock lock from outside
 unsigned int get_readers_count(rwlock* rwlock_p);
 
