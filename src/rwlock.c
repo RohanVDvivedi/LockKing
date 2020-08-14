@@ -1,12 +1,5 @@
 #include<rwlock.h>
 
-rwlock* get_rwlock()
-{
-	rwlock* rwlock_p = malloc(sizeof(rwlock));
-	initialize_rwlock(rwlock_p);
-	return rwlock_p;
-}
-
 void initialize_rwlock(rwlock* rwlock_p)
 {
 	rwlock_p->reader_threads_waiting = 0;
@@ -191,14 +184,4 @@ int deinitialize_rwlock(rwlock* rwlock_p)
 	pthread_cond_destroy(&(rwlock_p->read_wait));
 	pthread_cond_destroy(&(rwlock_p->write_wait));
 	return 0;
-}
-
-int delete_rwlock(rwlock* rwlock_p)
-{
-	if(deinitialize_rwlock(rwlock_p) == 0)
-	{
-		free(rwlock_p);
-		return 0;
-	}
-	return -1;
 }
