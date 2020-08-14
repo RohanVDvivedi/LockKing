@@ -1,5 +1,5 @@
 # ReaderWriterLock
-A generic reader writer lock, that allows you to query count of waiting reader and writer threads on the lock.
+A reader writer lock, that allows you to query count of waiting reader and writer threads on the lock.
 
 setup instructions
  * git clone https://github.com/RohanVDvivedi/ReaderWriterLock.git
