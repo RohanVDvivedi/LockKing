@@ -107,7 +107,7 @@ void downgrade_writer_to_reader_lock(rwlock* rwlock_p)
 	// count your self in as a reader
 	rwlock_p->reading_threads++;
 
-	// else we wake up all the reading threads
+	// we wake up all the reading threads, to join us in reading
 	if(rwlock_p->reader_threads_waiting > 0)
 	{
 		pthread_cond_broadcast(&(rwlock_p->read_wait));
