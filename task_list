@@ -20,5 +20,3 @@
    There is waiting for new readers, new upgradable readers and new writers
    There is no waiting state for any transitions between them
  * provide a rwl lock a lighter implementation of the same reader writer lock
- * move promise implementation from BoomPar to ReaderWriterLock
- * after that rename this project to LockingC
