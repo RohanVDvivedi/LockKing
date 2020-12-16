@@ -2,6 +2,8 @@
 A reader writer lock, that allows you to query count of waiting reader and writer threads on the lock.
 
 ## Setup instructions
+**Install dependencies :**
+ * This project does not have any dependencies.
 
 **Download source code :**
  * `git clone https://github.com/RohanVDvivedi/ReaderWriterLock.git`
