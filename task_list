@@ -5,7 +5,7 @@
 
    transitions allowed N = no lock
    N -> R|U|W
-   R|U|N -> N
+   R|U|W -> N
 
    U -> W
 
