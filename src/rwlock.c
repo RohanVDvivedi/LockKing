@@ -47,7 +47,35 @@ int write_lock(rwlock* rwlock_p, int non_blocking);
 int downgrade_lock(rwlock* rwlock_p);
 int upgrade_lock(rwlock* rwlock_p, int non_blocking);
 
-int read_unlock(rwlock* rwlock_p);
+int read_unlock(rwlock* rwlock_p)
+{
+	int res = 0;
+
+	if(rwlock_p->has_internal_lock)
+		pthread_mutex_lock(get_rwlock_lock(rwlock_p));
+
+	// make sure that the resource is read locked
+	if(rwlock_p->readers_count == 0)
+		goto EXIT;
+
+	// decrement the readers_count, releasing read lock
+	rwlock_p->readers_count--;
+	res = 1;
+
+	// wake up any waiters (upgraders, writers or any possible waiting readers), only if this is the last reader thread
+	if(rwlock_p->readers_count == 1 && rwlock_p->upgraders_waiting_count > 0)
+		pthread_cond_signal(&(rwlock_p->upgrade_wait));
+	else if(rwlock_p->readers_count == 0 && rwlock_p->writers_waiting_count > 0)
+		pthread_cond_signal(&(rwlock_p->write_wait));
+	else if(rwlock_p->readers_count == 0 && rwlock_p->readers_waiting_count > 0)
+		pthread_cond_broadcast(&(rwlock_p->read_wait));
+
+	EXIT:;
+	if(rwlock_p->has_internal_lock)
+		pthread_mutex_unlock(get_rwlock_lock(rwlock_p));
+
+	return res;
+}
 
 int write_unlock(rwlock* rwlock_p)
 {
