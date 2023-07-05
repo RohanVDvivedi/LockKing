@@ -44,7 +44,35 @@ void deinitialize_rwlock(rwlock* rwlock_p)
 int read_lock(rwlock* rwlock_p, int non_blocking, int prefering);
 int write_lock(rwlock* rwlock_p, int non_blocking);
 
-int downgrade_lock(rwlock* rwlock_p);
+int downgrade_lock(rwlock* rwlock_p)
+{
+	int res = 0;
+
+	if(rwlock_p->has_internal_lock)
+		pthread_mutex_lock(get_rwlock_lock(rwlock_p));
+
+	// make sure that the resource is write locked
+	if(rwlock_p->writers_count == 0)
+		goto EXIT;
+
+	// decrement the writers_count, increment readers_count, releasing converting a read lock to a write lock
+	rwlock_p->writers_count--;
+	rwlock_p->readers_count++;
+	res = 1;
+
+	// since before this call I was a writer, there can not be any upgraders waiting in the system
+
+	// so we only need to wake up readers
+	if(rwlock_p->readers_waiting_count > 0)
+		pthread_cond_broadcast(&(rwlock_p->read_wait));
+
+	EXIT:;
+	if(rwlock_p->has_internal_lock)
+		pthread_mutex_unlock(get_rwlock_lock(rwlock_p));
+
+	return res;
+}
+
 int upgrade_lock(rwlock* rwlock_p, int non_blocking);
 
 int read_unlock(rwlock* rwlock_p)
