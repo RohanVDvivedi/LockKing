@@ -152,7 +152,9 @@ int upgrade_lock(rwlock* rwlock_p, int non_blocking)
 		pthread_mutex_lock(get_rwlock_lock(rwlock_p));
 
 	// make sure that the resource is read locked
-	if(rwlock_p->readers_count == 0)
+	// by default logic rwlock_p->readers_count >= rwlock_p->upgraders_waiting_count
+	// if they are equal then all the readers are waiting for an upgrade and hence couldn't have requested an upgrade while already waiting for an upgrade
+	if(rwlock_p->readers_count == rwlock_p->upgraders_waiting_count)
 		goto EXIT;
 
 	// we can not even wait to upgrade the lock, if there is someone else aswell wanting to upgrade the lock
@@ -172,6 +174,8 @@ int upgrade_lock(rwlock* rwlock_p, int non_blocking)
 	}
 	else
 	{
+		// only a reader thread (thread with read lock on the resource) can go on to wait for an upgrade to a writer lock
+		// hence rwlock_p->upgraders_waiting_count <= rwlock_p->readers_count
 		while(rwlock_p->readers_count > 1)
 		{
 			rwlock_p->upgraders_waiting_count++;
@@ -200,7 +204,9 @@ int read_unlock(rwlock* rwlock_p)
 		pthread_mutex_lock(get_rwlock_lock(rwlock_p));
 
 	// make sure that the resource is read locked
-	if(rwlock_p->readers_count == 0)
+	// by default logic rwlock_p->readers_count >= rwlock_p->upgraders_waiting_count
+	// if they are equal then all the readers are waiting for an upgrade and hence couldn't have requested a read_unlock
+	if(rwlock_p->readers_count == rwlock_p->upgraders_waiting_count)
 		goto EXIT;
 
 	// decrement the readers_count, releasing read lock
