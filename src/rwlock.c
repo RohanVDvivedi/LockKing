@@ -41,7 +41,43 @@ void deinitialize_rwlock(rwlock* rwlock_p)
 	pthread_cond_destroy(&(rwlock_p->upgrade_wait));
 }
 
-int read_lock(rwlock* rwlock_p, int non_blocking, int prefering);
+int read_lock(rwlock* rwlock_p, int non_blocking, int preferring)
+{
+	int res = 0;
+
+	if(rwlock_p->has_internal_lock)
+		pthread_mutex_lock(get_rwlock_lock(rwlock_p));
+
+	if(non_blocking)
+	{
+		// only if there are no writers, and the lock is to be taken read preferring
+		// OR if there are no writers, and the lock is to be taken write preferring, with no writers waiting
+		// then take the lock
+		if(rwlock_p->writers_count == 0 && ((preferring == READ_PREFERRING) || (preferring == WRITE_PREFERRING && rwlock_p->writers_waiting_count == 0)))
+		{
+			rwlock_p->readers_count++;
+			res = 1;
+		}
+	}
+	else
+	{
+		// wait while there are writers or (there are waiting writers for write preferring case)
+		while(rwlock_p->writers_count > 0 || (preferring == WRITE_PREFERRING && rwlock_p->writers_waiting_count > 0))
+		{
+			rwlock_p->readers_waiting_count++;
+			pthread_cond_wait(&(rwlock_p->read_wait), get_rwlock_lock(rwlock_p));
+			rwlock_p->readers_waiting_count--;
+		}
+
+		rwlock_p->readers_count++;
+		res = 1;
+	}
+
+	if(rwlock_p->has_internal_lock)
+		pthread_mutex_unlock(get_rwlock_lock(rwlock_p));
+
+	return res;
+}
 
 int write_lock(rwlock* rwlock_p, int non_blocking)
 {
@@ -73,7 +109,6 @@ int write_lock(rwlock* rwlock_p, int non_blocking)
 		res = 1;
 	}
 
-	EXIT:;
 	if(rwlock_p->has_internal_lock)
 		pthread_mutex_unlock(get_rwlock_lock(rwlock_p));
 
