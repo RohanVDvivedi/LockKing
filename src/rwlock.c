@@ -42,7 +42,43 @@ void deinitialize_rwlock(rwlock* rwlock_p)
 }
 
 int read_lock(rwlock* rwlock_p, int non_blocking, int prefering);
-int write_lock(rwlock* rwlock_p, int non_blocking);
+
+int write_lock(rwlock* rwlock_p, int non_blocking)
+{
+	int res = 0;
+
+	if(rwlock_p->has_internal_lock)
+		pthread_mutex_lock(get_rwlock_lock(rwlock_p));
+
+	if(non_blocking)
+	{
+		// we can non blockingly take the write lock, only if there are no readers or writers accessing the resource
+		if(rwlock_p->readers_count == 0 && rwlock_p->writers_count == 0)
+		{
+			rwlock_p->writers_count++;
+			res = 1;
+		}
+	}
+	else
+	{
+		// block until there are any readers or writers accessing the resource
+		while(rwlock_p->readers_count > 0 && rwlock_p->writers_count > 0)
+		{
+			rwlock_p->writers_waiting_count++;
+			pthread_cond_wait(&(rwlock_p->write_wait), get_rwlock_lock(rwlock_p));
+			rwlock_p->writers_waiting_count--;
+		}
+
+		rwlock_p->writers_count++;
+		res = 1;
+	}
+
+	EXIT:;
+	if(rwlock_p->has_internal_lock)
+		pthread_mutex_unlock(get_rwlock_lock(rwlock_p));
+
+	return res;
+}
 
 int downgrade_lock(rwlock* rwlock_p)
 {
