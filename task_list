@@ -1,9 +1,0 @@
- * allow using an external mutex
-
- * change all thread counts to unsigned int : 1 or uint64_t to avoid overflows
-
- * add upgrade functionality
-
- * add function to check if is referenced by any thread
-
- * use the revamped version in Bufferpool and WALe
