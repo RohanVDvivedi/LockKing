@@ -30,11 +30,15 @@ void deinitialize_rwlock(rwlock* rwlock_p);
 
 // majorly the api only has below 6 functions
 
-#define READ_PREFERRING 0
-#define WRITE_PREFERRING 1
+typedef enum lock_preferring_type lock_preferring_type;
+enum lock_preferring_type
+{
+	READ_PREFERRING,
+	WRITE_PREFERRING,
+};
 
 // *_lock and upgrade lock functions may fail if non_blocking = 1 and the lock can not be immediatley taken
-int read_lock(rwlock* rwlock_p, int non_blocking, int preferring);
+int read_lock(rwlock* rwlock_p, lock_preferring_type preferring, int non_blocking);
 int write_lock(rwlock* rwlock_p, int non_blocking);
 
 // upgrades lock from reader to a writer

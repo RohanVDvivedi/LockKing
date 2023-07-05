@@ -41,7 +41,7 @@ void deinitialize_rwlock(rwlock* rwlock_p)
 	pthread_cond_destroy(&(rwlock_p->upgrade_wait));
 }
 
-int read_lock(rwlock* rwlock_p, int non_blocking, int preferring)
+int read_lock(rwlock* rwlock_p, lock_preferring_type preferring, int non_blocking)
 {
 	int res = 0;
 
