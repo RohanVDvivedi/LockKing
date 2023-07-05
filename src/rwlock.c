@@ -22,7 +22,7 @@ void initialize_rwlock(rwlock* rwlock_p, pthread_mutex_t* external_lock)
 	}
 
 	rwlock_p->readers_count = 0;
-	rwlock_p->writer_count = 0;
+	rwlock_p->writers_count = 0;
 	rwlock_p->upgraders_waiting_count = 0;
 	rwlock_p->readers_waiting_count = 0;
 	rwlock_p->writers_waiting_count = 0;
@@ -50,7 +50,60 @@ int upgrade_lock(rwlock* rwlock_p, int non_blocking);
 int read_unlock(rwlock* rwlock_p);
 int write_unlock(rwlock* rwlock_p);
 
-int is_read_locked(rwlock* rwlock_p);
-int is_write_locked(rwlock* rwlock_p);
-int has_waiters(rwlock* rwlock_p);
-int is_referenced(rwlock* rwlock_p);
+int is_read_locked(rwlock* rwlock_p)
+{
+	if(rwlock_p->has_internal_lock)
+		pthread_mutex_lock(get_rwlock_lock(rwlock_p));
+
+	int res = (rwlock_p->readers_count > 0);
+
+	if(rwlock_p->has_internal_lock)
+		pthread_mutex_unlock(get_rwlock_lock(rwlock_p));
+
+	return res;
+}
+
+int is_write_locked(rwlock* rwlock_p)
+{
+	if(rwlock_p->has_internal_lock)
+		pthread_mutex_lock(get_rwlock_lock(rwlock_p));
+
+	int res = (rwlock_p->writers_count > 0);
+
+	if(rwlock_p->has_internal_lock)
+		pthread_mutex_unlock(get_rwlock_lock(rwlock_p));
+
+	return res;
+}
+
+int has_waiters(rwlock* rwlock_p)
+{
+	if(rwlock_p->has_internal_lock)
+		pthread_mutex_lock(get_rwlock_lock(rwlock_p));
+
+	int res = (rwlock_p->readers_waiting_count > 0) ||
+				(rwlock_p->writers_waiting_count > 0) ||
+				(rwlock_p->upgraders_waiting_count > 0);
+
+	if(rwlock_p->has_internal_lock)
+		pthread_mutex_unlock(get_rwlock_lock(rwlock_p));
+
+	return res;
+}
+
+int is_referenced(rwlock* rwlock_p)
+{
+	if(rwlock_p->has_internal_lock)
+		pthread_mutex_lock(get_rwlock_lock(rwlock_p));
+
+	int res = (rwlock_p->readers_count > 0) ||
+				(rwlock_p->writers_count > 0) ||
+				(rwlock_p->readers_waiting_count > 0) ||
+				(rwlock_p->writers_waiting_count > 0) ||
+				(rwlock_p->upgraders_waiting_count > 0);
+
+	if(rwlock_p->has_internal_lock)
+		pthread_mutex_unlock(get_rwlock_lock(rwlock_p));
+
+	return res;
+}

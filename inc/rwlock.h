@@ -8,7 +8,7 @@ typedef struct rwlock rwlock;
 struct rwlock
 {
 	int has_internal_lock : 1;
-	unsigned int writer_count : 1;
+	unsigned int writers_count : 1;
 	unsigned int upgraders_waiting_count : 1;
 
 	uint64_t readers_count;
