@@ -2,52 +2,50 @@
 #define RW_LOCK_H
 
 #include<pthread.h>
+#include<stdint.h>
 
 typedef struct rwlock rwlock;
 struct rwlock
 {
-	unsigned int reader_threads_waiting;	// [ 0 .. INT_MAX ] 
-	unsigned int reading_threads;			// [ 0 .. INT_MAX ] 
+	int has_internal_lock : 1;
+	unsigned int writer_count : 1;
+	unsigned int upgraders_waiting_count : 1;
 
-	unsigned int writer_threads_waiting;	// [ 0 .. INT_MAX ] 
-	unsigned int writing_threads;			// [ 0 .. 1 ] 
+	uint64_t readers_count;
+	uint64_t readers_waiting_count;
+	uint64_t writers_waiting_count;
 
-	pthread_mutex_t internal_protector;
+	union{
+		pthread_mutex_t internal_lock;
+		pthread_mutex_t* external_lock;
+	};
 
-	pthread_cond_t read_wait;
-	pthread_cond_t write_wait;
+	pthread_cond_t read_wait; // readers wait here
+	pthread_cond_t write_wait; // writers wait here
 };
 
-void initialize_rwlock(rwlock* rwlock_p);
-
-// functionality for reader writer lock
-void read_lock(rwlock* rwlock_p);
-
-void read_unlock(rwlock* rwlock_p);
-
-void write_lock(rwlock* rwlock_p);
-
-void write_unlock(rwlock* rwlock_p);
-
-// downgrade lock functionality, if you have already hold a writer lock using the write_lock function
-// you can convert your lock to reader lock by calling the below function
-// Note : remember you can not convert back from a writer to a reader
-// Note : you must have write lock (acquired through write_lock(rwlock*) function), to call this function 
-void downgrade_writer_to_reader_lock(rwlock* rwlock_p);
-
-// necessary getters to micromanage the reader lock lock from outside
-unsigned int get_readers_count(rwlock* rwlock_p);
-
-unsigned int get_writers_count(rwlock* rwlock_p);
-
-unsigned int get_waiting_readers_count(rwlock* rwlock_p);
-
-unsigned int get_waiting_writers_count(rwlock* rwlock_p);
-
-unsigned int get_total_thread_count(rwlock* rwlock_p);
-
-// if some one is already holding a read or write lock, we can not delete or deinitialize the lock
-// if we could not delete the lock, it function returns -1 in that case, else 0
+void initialize_rwlock(rwlock* rwlock_p, pthread_mutex_t* external_lock);
 int deinitialize_rwlock(rwlock* rwlock_p);
+
+// majorly the api only has below 6 functions
+
+#define READ_PREFERING 0
+#define WRITE_PREFERING 1
+
+void read_lock(rwlock* rwlock_p, int non_blocking, int prefering);
+void write_lock(rwlock* rwlock_p, int non_blocking);
+
+int downgrade_lock(rwlock* rwlock_p);
+int upgrade_lock(rwlock* rwlock_p, int non_blocking);
+
+int read_unlock(rwlock* rwlock_p);
+int write_unlock(rwlock* rwlock_p);
+
+// use the below 4 functions only with an external lock held
+
+int is_read_locked(rwlock* rwlock_p);
+int is_write_locked(rwlock* rwlock_p);
+int has_waiters(rwlock* rwlock_p);
+int is_referenced(rwlock* rwlock_p);
 
 #endif
