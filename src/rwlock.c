@@ -1,5 +1,13 @@
 #include<rwlock.h>
 
+static pthread_mutex_t* get_rwlock_lock(rwlock* rwlock_p)
+{
+	if(rwlock_p->has_internal_lock)
+		return &(rwlock_p->internal_lock);
+	else
+		return rwlock_p->external_lock;
+}
+
 void initialize_rwlock(rwlock* rwlock_p, pthread_mutex_t* external_lock)
 {
 	if(external_lock)
