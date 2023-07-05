@@ -32,16 +32,23 @@ int deinitialize_rwlock(rwlock* rwlock_p);
 #define READ_PREFERING 0
 #define WRITE_PREFERING 1
 
-void read_lock(rwlock* rwlock_p, int non_blocking, int prefering);
-void write_lock(rwlock* rwlock_p, int non_blocking);
+// *_lock and upgrade lock functions may fail if non_blocking = 1 and the lock can not be immediatley taken
+int read_lock(rwlock* rwlock_p, int non_blocking, int prefering);
+int write_lock(rwlock* rwlock_p, int non_blocking);
 
-int downgrade_lock(rwlock* rwlock_p);
+// upgrades lock from reader to a writer
+// this may fail if there already is a reader thread waiting for an upgrade
 int upgrade_lock(rwlock* rwlock_p, int non_blocking);
+
+// *_unlock and downgrade function never blocks
+
+// downgrades lock from a writer to a reader
+int downgrade_lock(rwlock* rwlock_p);
 
 int read_unlock(rwlock* rwlock_p);
 int write_unlock(rwlock* rwlock_p);
 
-// use the below 4 functions only with an external lock held
+// use the below 4 functions only with an external lock held, else they give only instantaneous results
 
 int is_read_locked(rwlock* rwlock_p);
 int is_write_locked(rwlock* rwlock_p);
