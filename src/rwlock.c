@@ -73,7 +73,54 @@ int downgrade_lock(rwlock* rwlock_p)
 	return res;
 }
 
-int upgrade_lock(rwlock* rwlock_p, int non_blocking);
+int upgrade_lock(rwlock* rwlock_p, int non_blocking)
+{
+	int res = 0;
+
+	if(rwlock_p->has_internal_lock)
+		pthread_mutex_lock(get_rwlock_lock(rwlock_p));
+
+	// make sure that the resource is read locked
+	if(rwlock_p->readers_count == 0)
+		goto EXIT;
+
+	if(non_blocking)
+	{
+		// to non blockingly take the lock,
+		// there must not be any other reader in the system
+		// and there should not be any upgraders in the system
+		if(rwlock_p->readers_count == 1 && rwlock_p->upgraders_waiting_count == 0)
+		{
+			rwlock_p->readers_count--;
+			rwlock_p->writers_count++;
+			res = 1;
+		}
+	}
+	else
+	{
+		// we can not even wait to upgrade the lock, if there is someone else aswell wanting to upgrade the lock
+		if(rwlock_p->upgraders_waiting_count > 0)
+			goto EXIT;
+
+		while(rwlock_p->readers_count != 1)
+		{
+			rwlock_p->upgraders_waiting_count++;
+			pthread_cond_wait(&(rwlock_p->upgrade_wait), get_rwlock_lock(rwlock_p));
+			rwlock_p->upgraders_waiting_count--;
+		}
+
+		// once the readers count has reached 1, we upgrade the lock
+		rwlock_p->readers_count--;
+		rwlock_p->writers_count++;
+		res = 1;
+	}
+
+	EXIT:;
+	if(rwlock_p->has_internal_lock)
+		pthread_mutex_unlock(get_rwlock_lock(rwlock_p));
+
+	return res;
+}
 
 int read_unlock(rwlock* rwlock_p)
 {
