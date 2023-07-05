@@ -67,7 +67,7 @@ int read_unlock(rwlock* rwlock_p)
 		pthread_cond_signal(&(rwlock_p->upgrade_wait));
 	else if(rwlock_p->readers_count == 0 && rwlock_p->writers_waiting_count > 0)
 		pthread_cond_signal(&(rwlock_p->write_wait));
-	else if(rwlock_p->readers_count == 0 && rwlock_p->readers_waiting_count > 0)
+	else if(rwlock_p->readers_count == 0 && rwlock_p->readers_waiting_count > 0) // this is redundant, since readers will never wait if there are no writers or upgraders waiting
 		pthread_cond_broadcast(&(rwlock_p->read_wait));
 
 	EXIT:;
