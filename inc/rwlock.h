@@ -22,10 +22,11 @@ struct rwlock
 
 	pthread_cond_t read_wait; // readers wait here
 	pthread_cond_t write_wait; // writers wait here
+	pthread_cond_t upgrade_wait; // upgrader waits here
 };
 
 void initialize_rwlock(rwlock* rwlock_p, pthread_mutex_t* external_lock);
-int deinitialize_rwlock(rwlock* rwlock_p);
+void deinitialize_rwlock(rwlock* rwlock_p);
 
 // majorly the api only has below 6 functions
 
