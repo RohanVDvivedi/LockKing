@@ -1,5 +1,9 @@
 # ReaderWriterLock
-A reader writer lock, that allows you to query count of waiting reader and writer threads on the lock.
+A reader writer lock that allows
+ * taking locks READ_PREFERRING or WRITE_PREFERRING
+ * taking locks BLOCKING-ly or NON_BLOCKING-ly
+ * It allows you to downgrade writer lock to reader lock and upgrade reader lock to writer lock (second of which may fail).
+ * IT allows you to have an external lock allowing you to build complex functionalities aroung this lock (see my projects Bufferpool and WALe).
 
 ## Setup instructions
 **Install dependencies :**
