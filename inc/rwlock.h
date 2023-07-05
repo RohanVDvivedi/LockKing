@@ -37,6 +37,9 @@ enum lock_preferring_type
 	WRITE_PREFERRING,
 };
 
+#define BLOCKING 0
+#define NON_BLOCKING 1
+
 // *_lock and upgrade lock functions may fail if non_blocking = 1 and the lock can not be immediatley taken
 int read_lock(rwlock* rwlock_p, lock_preferring_type preferring, int non_blocking);
 int write_lock(rwlock* rwlock_p, int non_blocking);
