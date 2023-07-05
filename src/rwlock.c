@@ -48,7 +48,34 @@ int downgrade_lock(rwlock* rwlock_p);
 int upgrade_lock(rwlock* rwlock_p, int non_blocking);
 
 int read_unlock(rwlock* rwlock_p);
-int write_unlock(rwlock* rwlock_p);
+
+int write_unlock(rwlock* rwlock_p)
+{
+	int res = 0;
+
+	if(rwlock_p->has_internal_lock)
+		pthread_mutex_lock(get_rwlock_lock(rwlock_p));
+
+	// make sure that the resource is write locked
+	if(rwlock_p->writers_count == 0)
+		goto EXIT;
+
+	// decrement the writers_count, releasing write lock
+	rwlock_p->writers_count--;
+	res = 1;
+
+	// wake up any waiters, a writer will always prefer a writer to have the lock
+	if(rwlock_p->writers_waiting_count > 0)
+		pthread_cond_signal(&(rwlock_p->write_wait));
+	else if(rwlock_p->readers_waiting_count > 0)
+		pthread_cond_broadcast(&(rwlock_p->read_wait));
+
+	EXIT:;
+	if(rwlock_p->has_internal_lock)
+		pthread_mutex_unlock(get_rwlock_lock(rwlock_p));
+
+	return res;
+}
 
 int is_read_locked(rwlock* rwlock_p)
 {
