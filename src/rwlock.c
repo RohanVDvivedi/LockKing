@@ -24,7 +24,14 @@ void initialize_rwlock(rwlock* rwlock_p, pthread_mutex_t* external_lock)
 	pthread_cond_init(&(rwlock_p->upgrade_wait), NULL);
 }
 
-void deinitialize_rwlock(rwlock* rwlock_p);
+void deinitialize_rwlock(rwlock* rwlock_p)
+{
+	if(rwlock_p->has_internal_lock)
+		pthread_mutex_destroy(&(rwlock_p->internal_lock));
+	pthread_cond_destroy(&(rwlock_p->read_wait));
+	pthread_cond_destroy(&(rwlock_p->write_wait));
+	pthread_cond_destroy(&(rwlock_p->upgrade_wait));
+}
 
 int read_lock(rwlock* rwlock_p, int non_blocking, int prefering);
 int write_lock(rwlock* rwlock_p, int non_blocking);
