@@ -155,12 +155,15 @@ int upgrade_lock(rwlock* rwlock_p, int non_blocking)
 	if(rwlock_p->readers_count == 0)
 		goto EXIT;
 
+	// we can not even wait to upgrade the lock, if there is someone else aswell wanting to upgrade the lock
+	if(rwlock_p->upgraders_waiting_count > 0)
+		goto EXIT;
+
 	if(non_blocking)
 	{
 		// to non blockingly take the lock,
-		// there must not be any other reader in the system
-		// and there should not be any upgraders in the system
-		if(rwlock_p->readers_count == 1 && rwlock_p->upgraders_waiting_count == 0)
+		// there must not be any other reader in the system, other than us
+		if(rwlock_p->readers_count == 1)
 		{
 			rwlock_p->readers_count--;
 			rwlock_p->writers_count++;
@@ -169,11 +172,7 @@ int upgrade_lock(rwlock* rwlock_p, int non_blocking)
 	}
 	else
 	{
-		// we can not even wait to upgrade the lock, if there is someone else aswell wanting to upgrade the lock
-		if(rwlock_p->upgraders_waiting_count > 0)
-			goto EXIT;
-
-		while(rwlock_p->readers_count != 1)
+		while(rwlock_p->readers_count > 1)
 		{
 			rwlock_p->upgraders_waiting_count++;
 			pthread_cond_wait(&(rwlock_p->upgrade_wait), get_rwlock_lock(rwlock_p));
