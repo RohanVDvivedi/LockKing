@@ -98,7 +98,7 @@ int write_lock(rwlock* rwlock_p, int non_blocking)
 	else
 	{
 		// block until there are any readers or writers accessing the resource
-		while(rwlock_p->readers_count > 0 && rwlock_p->writers_count > 0)
+		while(rwlock_p->readers_count > 0 || rwlock_p->writers_count > 0)
 		{
 			rwlock_p->writers_waiting_count++;
 			pthread_cond_wait(&(rwlock_p->write_wait), get_rwlock_lock(rwlock_p));
