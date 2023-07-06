@@ -63,4 +63,16 @@ int is_write_locked(rwlock* rwlock_p);
 int has_waiters(rwlock* rwlock_p);
 int is_referenced(rwlock* rwlock_p);
 
+/*
+	to define an api for shared lock and exclusive lock based nomenclature
+	the below aliases have been defined
+*/
+
+#define shared_lock         read_lock
+#define shared_unlock       read_unlock
+#define exclusive_lock      write_lock
+#define exclusive_unlock    write_unlock
+#define is_shared_locked    is_read_locked
+#define is_exclusive_locked is_write_locked
+
 #endif
