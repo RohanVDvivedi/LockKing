@@ -4,6 +4,8 @@
 #include<pthread.h>
 #include<stdint.h>
 
+// rwlock assumes that the thread count in your application will never be more than UINT64_MAX
+
 typedef struct rwlock rwlock;
 struct rwlock
 {
