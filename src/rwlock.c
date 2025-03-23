@@ -1,5 +1,7 @@
 #include<rwlock.h>
 
+#include<pthread_cond_utils.h>
+
 static pthread_mutex_t* get_rwlock_lock(rwlock* rwlock_p)
 {
 	if(rwlock_p->has_internal_lock)
@@ -27,9 +29,9 @@ void initialize_rwlock(rwlock* rwlock_p, pthread_mutex_t* external_lock)
 	rwlock_p->readers_waiting_count = 0;
 	rwlock_p->writers_waiting_count = 0;
 
-	pthread_cond_init_with_monotonic_clock(&(rwlock_p->read_wait), NULL);
-	pthread_cond_init_with_monotonic_clock(&(rwlock_p->write_wait), NULL);
-	pthread_cond_init_with_monotonic_clock(&(rwlock_p->upgrade_wait), NULL);
+	pthread_cond_init_with_monotonic_clock(&(rwlock_p->read_wait));
+	pthread_cond_init_with_monotonic_clock(&(rwlock_p->write_wait));
+	pthread_cond_init_with_monotonic_clock(&(rwlock_p->upgrade_wait));
 }
 
 void deinitialize_rwlock(rwlock* rwlock_p)
