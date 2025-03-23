@@ -7,7 +7,7 @@ A reader writer lock that allows
 
 ## Setup instructions
 **Install dependencies :**
- * This project does not have any dependencies.
+  * [PosixUtils](https://github.com/RohanVDvivedi/PosixUtils)
 
 **Download source code :**
  * `git clone https://github.com/RohanVDvivedi/ReaderWriterLock.git`
