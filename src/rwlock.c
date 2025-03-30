@@ -1,6 +1,6 @@
-#include<rwlock.h>
+#include<rwlock/rwlock.h>
 
-#include<pthread_cond_utils.h>
+#include<posixutils/pthread_cond_utils.h>
 
 static pthread_mutex_t* get_rwlock_lock(rwlock* rwlock_p)
 {
