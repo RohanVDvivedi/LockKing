@@ -1,0 +1,26 @@
+ * on feature branch "_lock-with-timed-wait"
+ * implement static inline helper functions as below
+   * can_grab_read_lock
+   * can_grab_write_lock
+   * can_upgrade_lock
+   **
+   * should_block_to_grab_read_lock
+   * should_block_to_grab_write_lock
+   * should_block_to_upgrade_lock
+  * each of the read_lock, write_lock and update_lock, will have last parameter as uint64_t timeout_in_microseconds
+  * define macros for this new parameter as
+    #define NON_BLOCKING 0
+    #define BLOCKING UINT64_MAX
+  * these functions will also change their implementation as follows
+    * some checks
+    * if timeout != NON_BLOCKING
+    *    while(should_block && !wait_error)
+    *       if timeout == BLOCKING
+    *           wait_error = ptherad_wait
+    *       else
+    *           wait_error = pthread_timed_wait
+    *  if can_grab_lock
+    *    take_lock
+    *    result = 1
+    *  return result
+   * test all downstream libraries and only then merge
