@@ -20,6 +20,8 @@
     *           wait_error = ptherad_wait
     *       else
     *           wait_error = pthread_timed_wait
+    *    if write_lock && !can_grab_lock
+    *       wake up all readers -> to wake up people waiting on waiting writers
     *  if can_grab_lock
     *    take_lock
     *    result = 1
