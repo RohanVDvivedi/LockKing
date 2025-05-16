@@ -8,23 +8,32 @@
    * should_block_to_grab_write_lock
    * should_block_to_upgrade_lock
    ** in the above 2 sets of functions, they could just be complement of each other, if so implement only the can_grab_* versions
+  * fix prior checks of upgrade_lock function to
+    if(write_locked -> could not have been read locked by anyone) if(reader_count == 0 -> not readlocked by anyone) if(upgrader_waiting) then exit
   * each of the read_lock, write_lock and update_lock, will have last parameter as uint64_t timeout_in_microseconds
   * define macros for this new parameter as
     #define NON_BLOCKING 0
     #define BLOCKING UINT64_MAX
   * these functions will also change their implementation as follows
-    * some checks
+    * int res = 0;
+    * int was_blocked_atleast_once = 0;
     * if timeout != NON_BLOCKING
     *    while(should_block && !wait_error)
+    *       waiter_count++
     *       if timeout == BLOCKING
     *           wait_error = ptherad_wait
     *       else
     *           wait_error = pthread_timed_wait
+    *       was_blocked_atleast_once = 1;
+    *       waiter_count--;
     *    if write_lock && !can_grab_lock
     *       wake up all readers -> to wake up people waiting on waiting writers
     *  if can_grab_lock
     *    take_lock
     *    result = 1
+    *  else // could not acquire lock -> required only for write_lock and upgrade_lock functions
+    *    if was_blocked_atleast_once
+    *       wake_up all readers
     *  return result
    * test all downstream libraries (includes the ones below) and only then merge
     * TupleIndexer
