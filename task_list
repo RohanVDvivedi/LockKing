@@ -1,11 +1,11 @@
  * on feature branch "_lock-with-timed-wait"
  * implement static inline helper functions as below
    * can_grab_read_lock
-   * can_grab_write_lock
+     * if READ preferring => (rwlock_p->writers_count == 0)
+     * else               => (rwlock_p->writers_count == 0 && rwlock_p->writers_waiting_count == 0 && rwlock_p->upgraders_waiting_count == 0)
+   * can_grab_write_lock => (rwlock_p->readers_count == 0 && rwlock_p->writers_count == 0)
    * can_upgrade_lock
    **
-   * should_block_to_grab_read_lock
-   * should_block_to_grab_write_lock
    * should_block_to_upgrade_lock
    ** in the above 2 sets of functions, they could just be complement of each other, if so implement only the can_grab_* versions
   * fix prior checks of upgrade_lock function to
