@@ -18,16 +18,15 @@
     * int res = 0;
     * int was_blocked_atleast_once = 0;
     * if timeout != NON_BLOCKING
+    *    int wait_error = 0;
     *    while(should_block && !wait_error)
     *       waiter_count++
     *       if timeout == BLOCKING
     *           wait_error = ptherad_wait
     *       else
-    *           wait_error = pthread_timed_wait
+    *           wait_error = pthread_timed_wait(timeout)
     *       was_blocked_atleast_once = 1;
     *       waiter_count--;
-    *    if write_lock && !can_grab_lock
-    *       wake up all readers -> to wake up people waiting on waiting writers
     *  if can_grab_lock
     *    take_lock
     *    result = 1
