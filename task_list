@@ -1,4 +1,3 @@
- * on feature branch "_lock-with-timed-wait"
  * implement static inline helper functions as below
    * can_grab_read_lock
      * if READ preferring => (rwlock_p->writers_count == 0)
