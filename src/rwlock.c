@@ -81,6 +81,12 @@ int read_lock(rwlock* rwlock_p, lock_preferring_type preferring, int non_blockin
 	return res;
 }
 
+static inline int can_grab_write_lock(const rwlock* rwlock_p)
+{
+	// a write lock can only be grabbed if there are no active readers and writers
+	return (rwlock_p->readers_count == 0) && (rwlock_p->writers_count == 0);
+}
+
 int write_lock(rwlock* rwlock_p, int non_blocking)
 {
 	int res = 0;
