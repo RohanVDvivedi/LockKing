@@ -94,31 +94,35 @@ static inline int can_grab_write_lock(const rwlock* rwlock_p)
 int write_lock(rwlock* rwlock_p, uint64_t timeout_in_microseconds)
 {
 	int res = 0;
+	int was_blocked = 0;
 
 	if(rwlock_p->has_internal_lock)
 		pthread_mutex_lock(get_rwlock_lock(rwlock_p));
 
-	if(non_blocking)
+	if(timeout_in_microseconds != NON_BLOCKING) // you can block only if timeout_in_microsecond != NON_BLOCKING
 	{
-		// we can non blockingly take the write lock, only if there are no readers or writers accessing the resource
-		if(rwlock_p->readers_count == 0 && rwlock_p->writers_count == 0)
+		int wait_error = 0;
+		while(!can_grab_write_lock(rwlock_p) && !wait_error) // block while you can not grab lock and there is no wait error
 		{
-			rwlock_p->writers_count++;
-			res = 1;
+			rwlock_p->writers_waiting_count++;
+			if(timeout_in_microseconds == BLOCKING)
+				pthread_cond_wait(&(rwlock_p->write_wait), get_rwlock_lock(rwlock_p));
+			else
+				pthread_cond_timedwait_for_microseconds(&(rwlock_p->write_wait), get_rwlock_lock(rwlock_p), &timeout_in_microseconds);
+			was_blocked = 1; // we were just blocked in the lines above
+			rwlock_p->writers_waiting_count--;
 		}
+	}
+
+	if(can_grab_write_lock(rwlock_p))
+	{
+		rwlock_p->writers_count++;
+		res = 1;
 	}
 	else
 	{
-		// block until there are any readers or writers accessing the resource
-		while(rwlock_p->readers_count > 0 || rwlock_p->writers_count > 0)
-		{
-			rwlock_p->writers_waiting_count++;
-			pthread_cond_wait(&(rwlock_p->write_wait), get_rwlock_lock(rwlock_p));
-			rwlock_p->writers_waiting_count--;
-		}
-
-		rwlock_p->writers_count++;
-		res = 1;
+		if(was_blocked) // while we were blocked some write preferring readers could have gone to wait, so we just wake them up, we do this if we were blocked atleast once
+			pthread_cond_broadcast(&(rwlock_p->read_wait));
 	}
 
 	if(rwlock_p->has_internal_lock)
