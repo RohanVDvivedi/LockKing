@@ -1,20 +1,20 @@
-* rename the project to Glock, (pronounced like the gun Glock, short for Generalized lock)
+(*future)
+* rename the project to Glock, (pronounced like the gun, Glock, short for Generalized-lock)
 * this will obviously house the rwlock
 * but it will also contain a glock, a type of generalized lock for complex data structures
-  * allowing users to input and pass a lock compatibility matrix (a square matrix of NxN, N being the number of operations uniquely defined on the data structure) where 1 means 2 operation are allowed together else they block each other
+  * allowing users to input and pass a lock compatibility matrix (a square matrix of NxN, N being the number of operations uniquely defined on the data structure) where 1 means 2 operation are allowed together, else they block each other
   * matrix[O1][O2] -> 0 OR 1, tells me if O1 could grab the lock, while a lock for O2 has already been issued
-  * it will like the rwlock, allow external_lock
-  * will maintain a counter of all operations lock types and a single condition variable that is woken up when ever a lock is released 
-  * a rwlock matrix could possibly look like this
-       R  W
-    R  1  0
-    W  0  0
+  * it will like the rwlock, allow external_lock and internal_lock
+  * will maintain a counter of all operations lock types and a single condition variable that is woken up whenever a lock is released
+  * a rwlock's lock compatibility matrix, in terms of glock could possibly look like this
+           Read  Write
+    Read   1     0
+    Write  0     0
   * simple api (will mke it complex as more of it is designed)
-    * int glock_lock(glock*, int operation_type, uint64_t timeout_in_microseconds);
-    * int glock_unlock(glock*, int operation_type);
-  * rwlock WILL NEVER BE IMPLEMENTED AS A GENERALIZED CASE OF glock
+    * int glock_lock(glock* glock_p, int operation_type, uint64_t timeout_in_microseconds); (same BLOCKING and NON_BLOCKING constant macros will be allowed here)
+    * int glock_unlock(glock* glock_p, int operation_type);
+  * rwlock WILL NEVER BE IMPLEMENTED AS A GENERALIZED CASE OF glock, BECAUSE
     * glock will not have separate condition variable for all locking operation types, so can not prevent thread thrashing
     * and no read/write preferring options
-    * no upgrade downgrade options
-    * glock needs to intialize a dynamic array for counts of locks issued per operation type, which is not ideal, and initialization could fail, unlike rwlock
-    * timeout and blocking/non-blocking will still be allowed in glock
+    * no upgrade-downgrade options
+    * glock needs to intialize a dynamic array for counts of locks issued per operation type, which is not ideal, and so it's initialization could fail, unlike rwlock
