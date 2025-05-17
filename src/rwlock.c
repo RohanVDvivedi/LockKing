@@ -175,10 +175,12 @@ int upgrade_lock(rwlock* rwlock_p, int non_blocking)
 	if(rwlock_p->has_internal_lock)
 		pthread_mutex_lock(get_rwlock_lock(rwlock_p));
 
-	// make sure that the resource is read locked
-	// by default logic rwlock_p->readers_count >= rwlock_p->upgraders_waiting_count
-	// if they are equal then all the readers are waiting for an upgrade and hence couldn't have requested an upgrade while already waiting for an upgrade
-	if(rwlock_p->readers_count == rwlock_p->upgraders_waiting_count)
+	// you can not be holding a reader lock (assumed since you want to upgrade), if there are active writers
+	if(rwlock_p->writers_count > 0)
+		goto EXIT;
+
+	// there are not read locks issued, so you can not be holding a reader lock
+	if(rwlock_p->readers_count == 0)
 		goto EXIT;
 
 	// we can not even wait to upgrade the lock, if there is someone else aswell wanting to upgrade the lock
