@@ -171,6 +171,7 @@ static inline int can_upgrade_lock(const rwlock* rwlock_p)
 int upgrade_lock(rwlock* rwlock_p, uint64_t timeout_in_microseconds)
 {
 	int res = 0;
+	int was_blocked = 0;
 
 	if(rwlock_p->has_internal_lock)
 		pthread_mutex_lock(get_rwlock_lock(rwlock_p));
