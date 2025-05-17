@@ -187,32 +187,31 @@ int upgrade_lock(rwlock* rwlock_p, uint64_t timeout_in_microseconds)
 	if(rwlock_p->upgraders_waiting_count > 0)
 		goto EXIT;
 
-	if(non_blocking)
+	if(timeout_in_microseconds != NON_BLOCKING) // you can block only if timeout_in_microsecond != NON_BLOCKING
 	{
-		// to non blockingly take the lock,
-		// there must not be any other reader in the system, other than us
-		if(rwlock_p->readers_count == 1)
-		{
-			rwlock_p->readers_count--;
-			rwlock_p->writers_count++;
-			res = 1;
-		}
-	}
-	else
-	{
-		// only a reader thread (thread with read lock on the resource) can go on to wait for an upgrade to a writer lock
-		// hence rwlock_p->upgraders_waiting_count <= rwlock_p->readers_count
-		while(rwlock_p->readers_count > 1)
+		int wait_error = 0;
+		while(!can_upgrade_lock(rwlock_p) && !wait_error) // block while you can not grab lock and there is no wait error
 		{
 			rwlock_p->upgraders_waiting_count++;
-			pthread_cond_wait(&(rwlock_p->upgrade_wait), get_rwlock_lock(rwlock_p));
+			if(timeout_in_microseconds == BLOCKING)
+				pthread_cond_wait(&(rwlock_p->upgrade_wait), get_rwlock_lock(rwlock_p));
+			else
+				pthread_cond_timedwait_for_microseconds(&(rwlock_p->upgrade_wait), get_rwlock_lock(rwlock_p), &timeout_in_microseconds);
+			was_blocked = 1; // we were just blocked in the lines above
 			rwlock_p->upgraders_waiting_count--;
 		}
+	}
 
-		// once the readers count has reached 1, we upgrade the lock
+	if(can_upgrade_lock(rwlock_p))
+	{
 		rwlock_p->readers_count--;
 		rwlock_p->writers_count++;
 		res = 1;
+	}
+	else
+	{
+		if(was_blocked) // while we were blocked some write preferring readers could have gone to wait, so we just wake them up, we do this if we were blocked atleast once
+			pthread_cond_broadcast(&(rwlock_p->read_wait));
 	}
 
 	EXIT:;
