@@ -1,23 +1,3 @@
-  * these functions will also change their implementation as follows
-    * int res = 0;
-    * int was_blocked_atleast_once = 0;
-    * if timeout != NON_BLOCKING
-    *    int wait_error = 0;
-    *    while(should_block && !wait_error)
-    *       waiter_count++
-    *       if timeout == BLOCKING
-    *           wait_error = ptherad_wait
-    *       else
-    *           wait_error = pthread_timed_wait(timeout)
-    *       was_blocked_atleast_once = 1;
-    *       waiter_count--;
-    *  if can_grab_lock
-    *    take_lock
-    *    result = 1
-    *  else // could not acquire lock -> required only for write_lock and upgrade_lock functions
-    *    if was_blocked_atleast_once
-    *       wake_up all readers
-    *  return result
    * test all downstream libraries (includes the ones below) and only then merge
     * TupleIndexer
     * Bufferpool
