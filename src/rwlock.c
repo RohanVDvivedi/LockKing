@@ -51,7 +51,7 @@ static inline int can_grab_read_lock(const rwlock* rwlock_p, lock_preferring_typ
 		return (rwlock_p->writers_count == 0) && (rwlock_p->writers_waiting_count == 0) && (rwlock_p->upgraders_waiting_count == 0);
 }
 
-int read_lock(rwlock* rwlock_p, lock_preferring_type preferring, int non_blocking)
+int read_lock(rwlock* rwlock_p, lock_preferring_type preferring, uint64_t timeout_in_microseconds)
 {
 	int res = 0;
 
@@ -95,7 +95,7 @@ static inline int can_grab_write_lock(const rwlock* rwlock_p)
 	return (rwlock_p->readers_count == 0) && (rwlock_p->writers_count == 0);
 }
 
-int write_lock(rwlock* rwlock_p, int non_blocking)
+int write_lock(rwlock* rwlock_p, uint64_t timeout_in_microseconds)
 {
 	int res = 0;
 
@@ -168,7 +168,7 @@ static inline int can_upgrade_lock(const rwlock* rwlock_p)
 	return (rwlock_p->readers_count == 1);
 }
 
-int upgrade_lock(rwlock* rwlock_p, int non_blocking)
+int upgrade_lock(rwlock* rwlock_p, uint64_t timeout_in_microseconds)
 {
 	int res = 0;
 
