@@ -2,7 +2,6 @@
    * can_grab_read_lock
      * if READ preferring => (rwlock_p->writers_count == 0)
      * else               => (rwlock_p->writers_count == 0 && rwlock_p->writers_waiting_count == 0 && rwlock_p->upgraders_waiting_count == 0)
-   * can_grab_write_lock => (rwlock_p->readers_count == 0 && rwlock_p->writers_count == 0)
    * can_upgrade_lock => (rwlock_p->readers_count == 1)
      * ensure that the calling function atleast has read_lock on it (with obviously no writers waiting) and there are no upgraders waiting
    ** in the above 2 sets of functions, they could just be complement of each other, if so implement only the can_grab_* versions
