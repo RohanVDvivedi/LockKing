@@ -106,9 +106,9 @@ int write_lock(rwlock* rwlock_p, uint64_t timeout_in_microseconds)
 		{
 			rwlock_p->writers_waiting_count++;
 			if(timeout_in_microseconds == BLOCKING)
-				pthread_cond_wait(&(rwlock_p->write_wait), get_rwlock_lock(rwlock_p));
+				wait_error = pthread_cond_wait(&(rwlock_p->write_wait), get_rwlock_lock(rwlock_p));
 			else
-				pthread_cond_timedwait_for_microseconds(&(rwlock_p->write_wait), get_rwlock_lock(rwlock_p), &timeout_in_microseconds);
+				wait_error = pthread_cond_timedwait_for_microseconds(&(rwlock_p->write_wait), get_rwlock_lock(rwlock_p), &timeout_in_microseconds);
 			was_blocked = 1; // we were just blocked in the lines above
 			rwlock_p->writers_waiting_count--;
 		}
@@ -195,9 +195,9 @@ int upgrade_lock(rwlock* rwlock_p, uint64_t timeout_in_microseconds)
 		{
 			rwlock_p->upgraders_waiting_count++;
 			if(timeout_in_microseconds == BLOCKING)
-				pthread_cond_wait(&(rwlock_p->upgrade_wait), get_rwlock_lock(rwlock_p));
+				wait_error = pthread_cond_wait(&(rwlock_p->upgrade_wait), get_rwlock_lock(rwlock_p));
 			else
-				pthread_cond_timedwait_for_microseconds(&(rwlock_p->upgrade_wait), get_rwlock_lock(rwlock_p), &timeout_in_microseconds);
+				wait_error = pthread_cond_timedwait_for_microseconds(&(rwlock_p->upgrade_wait), get_rwlock_lock(rwlock_p), &timeout_in_microseconds);
 			was_blocked = 1; // we were just blocked in the lines above
 			rwlock_p->upgraders_waiting_count--;
 		}
