@@ -1,8 +1,8 @@
 # ReaderWriterLock
 A reader writer lock that allows
- * taking locks READ_PREFERRING or WRITE_PREFERRING
- * taking locks BLOCKING-ly or NON_BLOCKING-ly
- * It allows you to downgrade writer lock to reader lock and upgrade reader lock to writer lock (second of which may fail).
+ * taking locks READ_PREFERRING-ly or WRITE_PREFERRING-ly
+ * taking locks BLOCKING-ly or NON_BLOCKING-ly or with a timeout_in_microseconds
+ * It allows you to downgrade writer lock to reader lock and upgrade reader lock to writer lock
  * It allows you to have an external lock allowing you to build complex functionalities aroung this lock (see my projects Bufferpool and WALe).
 
 ## Setup instructions
