@@ -1,6 +1,6 @@
    * test all downstream libraries (includes the ones below) and only then merge
-    * TupleIndexer
     * Bufferpool
     * WALe
+    * TupleIndexer
     * MinTxEngine
     * TupleLargeTypes
