@@ -43,6 +43,14 @@ void deinitialize_rwlock(rwlock* rwlock_p)
 	pthread_cond_destroy(&(rwlock_p->upgrade_wait));
 }
 
+static inline int can_grab_read_lock(const rwlock* rwlock_p, lock_preferring_type preferring)
+{
+	if(preferring == READ_PREFERRING) // in read preferring mode, you grab lock immediately when you see that no writers hold lock
+		return (rwlock_p->writers_count == 0);
+	else // while in write preferring mode, it favors writers over readers, and waiting for all waiters trying to hold write lock to exit
+		return (rwlock_p->writers_count == 0) && (rwlock_p->writers_waiting_count == 0) && (rwlock_p->upgraders_waiting_count == 0);
+}
+
 int read_lock(rwlock* rwlock_p, lock_preferring_type preferring, int non_blocking)
 {
 	int res = 0;
