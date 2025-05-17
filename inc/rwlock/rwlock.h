@@ -40,7 +40,7 @@ enum lock_preferring_type
 };
 
 // below are the 2 special parameters of the uint64_t timeout_in_microseconds, parameter for use in the below functions
-#define NON_BLOCKING   0
+#define NON_BLOCKING   UINT64_C(0)
 #define BLOCKING       UINT64_MAX
 
 // *_lock and upgrade lock functions may fail if non_blocking = 1 and the lock can not be immediatley taken

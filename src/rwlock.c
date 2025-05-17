@@ -58,27 +58,23 @@ int read_lock(rwlock* rwlock_p, lock_preferring_type preferring, uint64_t timeou
 	if(rwlock_p->has_internal_lock)
 		pthread_mutex_lock(get_rwlock_lock(rwlock_p));
 
-	if(non_blocking)
+	if(timeout_in_microseconds != NON_BLOCKING) // you are allowed to block only if (timeout_in_microseconds != NON_BLOCKING)
 	{
-		// only if there are no writers, and the lock is to be taken read preferring
-		// OR if there are no writers, and the lock is to be taken write preferring, with no writers waiting
-		// then take the lock
-		if(rwlock_p->writers_count == 0 && ((preferring == READ_PREFERRING) || (preferring == WRITE_PREFERRING && rwlock_p->writers_waiting_count == 0 && rwlock_p->upgraders_waiting_count == 0)))
-		{
-			rwlock_p->readers_count++;
-			res = 1;
-		}
-	}
-	else
-	{
-		// wait while there are writers or (there are waiting writers for write preferring case)
-		while(rwlock_p->writers_count > 0 || (preferring == WRITE_PREFERRING && (rwlock_p->writers_waiting_count > 0 || rwlock_p->upgraders_waiting_count)))
+		int wait_error = 0;
+		while(!can_grab_read_lock(rwlock_p, preferring) && !wait_error) // block while you can not grab lock and there is no wait error
 		{
 			rwlock_p->readers_waiting_count++;
-			pthread_cond_wait(&(rwlock_p->read_wait), get_rwlock_lock(rwlock_p));
+			if(timeout_in_microseconds == BLOCKING)
+				wait_error = pthread_cond_wait(&(rwlock_p->read_wait), get_rwlock_lock(rwlock_p));
+			else
+				wait_error = pthread_cond_timedwait_for_microseconds(&(rwlock_p->read_wait), get_rwlock_lock(rwlock_p), &timeout_in_microseconds);
 			rwlock_p->readers_waiting_count--;
 		}
+	}
 
+	// if you can grab a lock, then grab it, else fail
+	if(can_grab_read_lock(rwlock_p, preferring))
+	{
 		rwlock_p->readers_count++;
 		res = 1;
 	}

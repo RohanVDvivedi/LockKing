@@ -1,7 +1,3 @@
-  * each of the read_lock, write_lock and update_lock, will have last parameter as uint64_t timeout_in_microseconds
-  * define macros for this new parameter as
-    #define NON_BLOCKING 0
-    #define BLOCKING UINT64_MAX
   * these functions will also change their implementation as follows
     * int res = 0;
     * int was_blocked_atleast_once = 0;
