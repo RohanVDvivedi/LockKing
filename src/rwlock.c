@@ -160,6 +160,14 @@ int downgrade_lock(rwlock* rwlock_p)
 	return res;
 }
 
+// before calling this unction you need to ensure that you are actually holding a reader lock, and that there are no upgraders waiting
+// i.e. writers_count == 0 && readers_count == 1
+static inline int can_upgrade_lock(const rwlock* rwlock_p)
+{
+	// you can go ahead with upgrading the reader lock held into a writer lock, only if we are the sole person holding the reader lock
+	return (rwlock_p->readers_count == 1);
+}
+
 int upgrade_lock(rwlock* rwlock_p, int non_blocking)
 {
 	int res = 0;
