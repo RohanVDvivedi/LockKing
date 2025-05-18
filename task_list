@@ -42,3 +42,4 @@
     * and no read/write preferring options
     * no upgrade-downgrade options
     * glock needs to intialize a dynamic array for counts of locks issued per operation type, which is not ideal, and so it's initialization could fail, unlike rwlock
+  * update this in resume
