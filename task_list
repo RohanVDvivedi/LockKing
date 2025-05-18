@@ -33,7 +33,7 @@
       pthread_mutex_t* external_lock;
     };
 
-    uint64_t* lock_granted_count_per_modex; // array of size modes_count
+    uint64_t* lock_granted_count_per_mode; // array of size modes_count
 
     pthread_cond_t waiters_wait;
   }
