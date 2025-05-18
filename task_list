@@ -20,7 +20,7 @@
     Write  0     0
   * simple api (will mke it complex as more of it is designed)
     * int glock_lock(glock* glock_p, int mode, uint64_t timeout_in_microseconds); (same BLOCKING and NON_BLOCKING constant macros will be allowed here)
-    * int glock_change_lock_mode(glock* glock_p, int old_mode, int new_mode);
+    * int glock_transition_lock_mode(glock* glock_p, int old_mode, int new_mode);
     * int glock_unlock(glock* glock_p, int mode);
   * there will also be int initialize_glock(glock* glock_p, const lock_compatibility_matrix*) and void deinitialize_glock(glock* glock_p) functions
   * lock_compatibility_matrix {
@@ -51,10 +51,9 @@
 
     pthread_cond_t waiters_wait;
   }
-  * needs rules for glock_change_lock_mode, like a sample implementation of reader-writer lock should not allow an upgrader to wait if there is already an upgrader waiting
   * rwlock WILL NEVER BE IMPLEMENTED AS A GENERALIZED CASE OF glock, BECAUSE
     * glock will not have separate condition variable for all locking operation types, so can not prevent thread thrashing
     * and no read/write preferring options
-    * no upgrade-downgrade options - possible through glock_change_lock_mode, but this needs to be though thoroughly
+    * glock_transition_lock_mode may allow upgrade/downgrade, but does not protect against deadlock caused by 2 concurrect readers trying to upgrade the lock
     * glock needs to intialize a dynamic array for counts of locks issued per operation type, which is not ideal, and so it's initialization could fail, unlike rwlock
   * update this in resume
