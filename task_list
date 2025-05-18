@@ -55,6 +55,6 @@
   * rwlock WILL NEVER BE IMPLEMENTED AS A GENERALIZED CASE OF glock, BECAUSE
     * glock will not have separate condition variable for all locking operation types, so can not prevent thread thrashing
     * and no read/write preferring options
-    * no upgrade-downgrade options
+    * no upgrade-downgrade options - possible through glock_change_lock_mode, but this needs to be though thoroughly
     * glock needs to intialize a dynamic array for counts of locks issued per operation type, which is not ideal, and so it's initialization could fail, unlike rwlock
   * update this in resume
