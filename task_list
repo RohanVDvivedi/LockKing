@@ -1,5 +1,10 @@
 (*future)
 * rename the project to GLock, (pronounced like the gun, Glock, short for Generalized-Lock)
+  * change repo name
+  * change makefile
+  * change readme
+  * change project description on github
+  * change resume
 * this will obviously house the rwlock
 * but it will also contain a glock, a type of generalized lock for complex data structures
   * allowing users to input and pass a lock compatibility matrix (a square matrix of NxN, N being the number of operations uniquely defined on the data structure) where 1 means, 2 operation are allowed together, else they block each other
