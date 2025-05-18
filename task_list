@@ -6,6 +6,9 @@
   * matrix[O1][O2] -> 0 OR 1, tells me if O1 could grab the lock, while a lock for O2 has already been issued
   * it will like the rwlock, allow external_lock and internal_lock
   * will maintain a counter of all operations lock types and a single condition variable that is woken up whenever a lock is released
+  * a mutex will have lock compatibility matirx as below (if implemented using glock)
+           LOCK
+    LOCK   0
   * a rwlock's lock compatibility matrix, in terms of glock could possibly look like this
            Read  Write
     Read   1     0
