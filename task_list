@@ -20,8 +20,10 @@
   * there will also be int initialize_glock(glock* glock_p, const lock_compatibility_matrix*) and void deinitialize_glock(glock* glock_p) functions
   * lock_compatibility_matrix {
     int modes_count;
-    int** matrix; // array of size (modes_count * modes_count)
+    int** matrix; // 2d array of size (modes_count * modes_count), ith row (0-indexed) must atleast have (i+1) elements
   }
+  * need to ensure that this matrix is symmettric accross its [0][0] to [modex_count-1][modes_count-1] diagonol, make a function for this
+  * need a function to check if 2 lock_modes are compatible, they are compatible if matirx[max(m1,m2)][min(m1,m2)] == 1
   * glock {
     const lock_compatibility_matrix* lcm;
 
