@@ -20,14 +20,23 @@
     Write  0     0
   * simple api (will mke it complex as more of it is designed)
     * int glock_lock(glock* glock_p, int mode, uint64_t timeout_in_microseconds); (same BLOCKING and NON_BLOCKING constant macros will be allowed here)
-    * int glock_transition_lock(glock* glock_p, int old_mode, int new_mode);
+    * int glock_change_lock_mode(glock* glock_p, int old_mode, int new_mode);
     * int glock_unlock(glock* glock_p, int mode);
   * there will also be int initialize_glock(glock* glock_p, const lock_compatibility_matrix*) and void deinitialize_glock(glock* glock_p) functions
   * lock_compatibility_matrix {
     int modes_count;
-    int** matrix; // 2d array of size (modes_count * modes_count), ith row (0-indexed) must atleast have (i+1) elements
+    uint8_t** matrix; // 2d array of size (modes_count * modes_count), ith row (0-indexed) must atleast have (i+1) elements
   }
-  * need to ensure that this matrix is symmettric accross its [0][0] to [modex_count-1][modes_count-1] diagonol, make a function for this
+  * a template initialization of this lock_compatibility matrix should look like this
+  lock_compatibility_matrix m = {
+    3,
+    (uint8_t*[]){
+        (uint8_t[]){1,},
+        (uint8_t[]){4,5,},
+        (uint8_t[]){7,8,9},
+    },
+  };
+  * need to ensure that this matrix is symmetric accross its [0][0] to [modex_count-1][modes_count-1] diagonol, make a function for this
   * need a function to check if 2 lock_modes are compatible, they are compatible if matirx[max(m1,m2)][min(m1,m2)] == 1
   * glock {
     const lock_compatibility_matrix* lcm;
@@ -42,6 +51,7 @@
 
     pthread_cond_t waiters_wait;
   }
+  * needs rules for glock_change_lock_mode, like a sample implementation of reader-writer lock should not allow an upgrader to wait if there is already an upgrader waiting
   * rwlock WILL NEVER BE IMPLEMENTED AS A GENERALIZED CASE OF glock, BECAUSE
     * glock will not have separate condition variable for all locking operation types, so can not prevent thread thrashing
     * and no read/write preferring options
