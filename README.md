@@ -6,7 +6,7 @@ It provides,
 A reader writer lock implementaton (rwlock) that allows
  * taking locks READ_PREFERRING-ly or WRITE_PREFERRING-ly
  * taking locks BLOCKING-ly or NON_BLOCKING-ly or with a timeout_in_microseconds
- * It allows you to downgrade writer lock to reader lock and upgrade reader lock to writer lock (with deadlock safety from multiple upgraders)
+ * It allows you to downgrade writer lock to reader lock and upgrade reader lock to writer lock (with safety from deadlocks arising out of concurrent upgraders)
  * It allows you to have an external lock allowing you to build complex functionalities aroung this lock (see my projects Bufferpool and WALe)
 
 ## Setup instructions
