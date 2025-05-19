@@ -25,7 +25,7 @@
   * there will also be int initialize_glock(glock* glock_p, const lock_compatibility_matrix*) and void deinitialize_glock(glock* glock_p) functions
   * lock_compatibility_matrix {
     int modes_count;
-    uint8_t** matrix; // 2d array of size (modes_count * modes_count), ith row (0-indexed) must atleast have (i+1) elements
+    uint8_t** matrix; // 2d array of size (modes_count * modes_count), ith row (0-indexed) must atleast have (i+1) elements, i.e. only bottom half of the matrix (at and below the diagonal matrix[0][0] to matrix[modes_count-1][modes_count-1]) is used
   }
   * a template initialization of this lock_compatibility matrix should look like this
   lock_compatibility_matrix m = {
@@ -51,9 +51,11 @@
 
     pthread_cond_t waiters_wait;
   }
-  * rwlock WILL NEVER BE IMPLEMENTED AS A GENERALIZED CASE OF glock, BECAUSE
-    * glock will not have separate condition variable for all locking operation types, so can not prevent thread thrashing
-    * and no read/write preferring options
-    * glock_transition_lock_mode may allow upgrade/downgrade, but does not protect against deadlock caused by 2 concurrect readers trying to upgrade the lock
-    * glock needs to intialize a dynamic array for counts of locks issued per operation type, which is not ideal, and so it's initialization could fail, unlike rwlock
-  * update this in resume
+  * In readme add the following:
+   * WHEN A rwlock CAN BE IMPLEMENTED USING THE glock, THEN WHY IS THERE A SEPARATE IMPLEMENTATION FOR A rwlock?
+   * Why rwlock WILL NEVER BE IMPLEMENTED AS A GENERALIZED CASE OF glock?
+     * glock will not have separate condition variable for all locking modes, so can not prevent thread thrashing
+     * glock will not have read/write preferring options
+     * glock_transition_lock_mode may allow upgrade/downgrade, but does not protect against deadlock caused by 2 concurrent readers trying to upgrade the lock
+     * glock needs to allocate and intialize a dynamic array for counts of locks issued per lock mode, and so it's initialization could fail, unlike rwlock
+  * update this project in resume
