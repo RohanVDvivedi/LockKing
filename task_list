@@ -1,5 +1,5 @@
 (*future)
-* rename the project to GLock, (pronounced like the gun, Glock, short for Generalized-Lock)
+* rename the project to LocKing
   * uninstall before changes
   * change repo name
   * change makefile
