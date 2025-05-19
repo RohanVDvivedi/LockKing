@@ -1,10 +1,5 @@
 (*future)
-* rename the project to LocKing
-  * uninstall before changes
-  * change repo name
-  * change makefile
-  * change readme
-  * change project description on github
+* rename the project to LocKKing
   * change resume
   * change in dependencies
     * Bufferpool
