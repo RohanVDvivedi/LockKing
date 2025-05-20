@@ -1,8 +1,7 @@
 (*future)
 * this will obviously house the rwlock
 * but it will also contain a glock, a type of generalized lock for complex data structures
-  * allowing users to input and pass a lock compatibility matrix (a square matrix of NxN, N being the number of operations uniquely defined on the data structure) where 1 means, 2 operation are allowed together, else they block each other
-  * matrix[M1][M2] -> 0 OR 1, tells me if lock request with mode = M1 could grab the lock, while a lock for mode = M2 has already been issued
+  * allowing users to input and pass a lock compatibility matrix (a square symmetric matrix of NxN, N being the number of locking modes uniquely defined on the data structure) where 1 means, 2 modes are compatible for being concurrently held, else they block each other
   * it will like the rwlock, allow external_lock and internal_lock
   * will maintain a counter of all issued locks, each grouped by their modes and a single condition variable that is woken up whenever a lock is released
   * a mutex will have lock compatibility matirx as below (if implemented using glock)
@@ -18,20 +17,22 @@
     * int glock_unlock(glock* glock_p, int mode);
   * there will also be int initialize_glock(glock* glock_p, const lock_compatibility_matrix*) and void deinitialize_glock(glock* glock_p) functions
   * lock_compatibility_matrix {
-    int modes_count;
-    uint8_t** matrix; // 2d array of size (modes_count * modes_count), ith row (0-indexed) must atleast have (i+1) elements, i.e. only bottom half of the matrix (at and below the diagonal matrix[0][0] to matrix[modes_count-1][modes_count-1]) is used
+    uint16_t modes_count; // upto 64000 modes allowed
+    uint8_t* matrix;
   }
+  total number of elements in matix = (modes_count) * (modes_count + 1) / 2
+  lock_compatibility_matrix[i][j] = lock_compatibility_matrix[j][i] = matrix[ min(i,j) + (max(i,j) * (max(i,j)+1)) / 2];
+  for all 0 <= i, j < modes_count
   * a template initialization of this lock_compatibility matrix should look like this
   lock_compatibility_matrix m = {
     3,
-    (uint8_t*[]){
-        (uint8_t[]){1,},
-        (uint8_t[]){4,5,},
-        (uint8_t[]){7,8,9},
+    (uint8_t[ (3 * (3+1)) / 2 ]){
+          0,
+          1,2,
+          3,4,5
     },
   };
-  * need to ensure that this matrix is symmetric accross its [0][0] to [modex_count-1][modes_count-1] diagonol, make a function for this
-  * need a function to check if 2 lock_modes are compatible, they are compatible if matirx[max(m1,m2)][min(m1,m2)] == 1
+  * need a function to check if 2 lock_modes are compatible, they are compatible if lock_compatibility_matrix[m1][m2] == 1
   * glock {
     const lock_compatibility_matrix* lcm;
 
@@ -42,6 +43,8 @@
     };
 
     uint64_t* lock_granted_count_per_mode; // array of size modes_count
+
+    uint64_t waiters_count; // total number of waiter threads waiting
 
     pthread_cond_t waiters_wait;
   }
