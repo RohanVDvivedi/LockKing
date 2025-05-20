@@ -27,7 +27,7 @@ A reader writer lock implementaton (rwlock) that allows
 ## Using The library
  * add `-llockking -lpthread` linker flag, while compiling your application
  * do not forget to include appropriate public api headers as and when needed. this includes
-   * `#include<rwlock/rwlock.h>`
+   * `#include<lockking/rwlock.h>`
 
 ## Instructions for uninstalling library
 
