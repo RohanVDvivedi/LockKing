@@ -11,6 +11,7 @@ A reader writer lock implementaton (rwlock) that allows
 
 ## Setup instructions
 **Install dependencies :**
+  * [Cutlery](https://github.com/RohanVDvivedi/Cutlery)
   * [PosixUtils](https://github.com/RohanVDvivedi/PosixUtils)
 
 **Download source code :**
@@ -28,6 +29,7 @@ A reader writer lock implementaton (rwlock) that allows
  * add `-llockking -lpthread` linker flag, while compiling your application
  * do not forget to include appropriate public api headers as and when needed. this includes
    * `#include<lockking/rwlock.h>`
+   * `#include<lockking/glock.h>`
 
 ## Instructions for uninstalling library
 
