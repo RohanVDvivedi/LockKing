@@ -18,9 +18,9 @@ It provides,
   * this is the problem glock solves, it defines what data-structure operations can happen concurrently and block the incompatible ones
 
 **Now the following two question might pop up in your head**
-  *WHEN A rwlock CAN BE IMPLEMENTED USING THE glock, THEN WHY IS THERE A SEPARATE IMPLEMENTATION FOR A rwlock?*
-  *OR Why rwlock WILL NEVER BE IMPLEMENTED AS A GENERALIZED CASE OF glock?*
-  *The reasons are noted below:*
+  * *WHEN A rwlock CAN BE IMPLEMENTED USING THE glock, THEN WHY IS THERE A SEPARATE IMPLEMENTATION FOR A rwlock?*
+  * *OR Why rwlock WILL NEVER BE IMPLEMENTED AS A GENERALIZED CASE OF glock?*
+  * *The reasons are noted below:*
     * glock will not have separate condition variable for all locking modes, so can not prevent thread thrashing
     * glock will not have read/write preferring options
     * glock_transition_lock_mode may allow upgrade/downgrade, but does not protect against deadlock caused by 2 concurrent readers trying to upgrade the same reader lock, while rwlock gracefully fails such a case by only allowing exactly 1 thread to wait for upgrading the reader lock
