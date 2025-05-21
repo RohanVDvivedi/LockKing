@@ -75,4 +75,11 @@ struct glock
 	const glock_matrix* gmatr;
 };
 
+int initialize_glock(glock* glock_p, const glock_matrix* gmatr);
+void deinitialize_glock(glock* glock_p);
+
+int glock_lock(glock* glock_p, uint64_t lock_mode, uint64_t timeout_in_microseconds);
+int glock_transition_lock(glock* glock_p, uint64_t old_lock_mode, uint64_t new_lock_mode, uint64_t timeout_in_microseconds);
+int glock_unlock(glock* glock_p, uint64_t lock_mode);
+
 #endif
