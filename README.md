@@ -25,7 +25,7 @@ It provides,
     * glock will not have read/write preferring options
     * glock_transition_lock_mode may allow upgrade/downgrade, but does not protect against deadlock caused by 2 concurrent readers trying to upgrade the same reader lock, while rwlock gracefully fails such a case by only allowing exactly 1 thread to wait for upgrading the reader lock
     * glock needs to allocate and intialize a dynamic array for counts of locks issued per lock mode, and so it's initialization could fail, unlike rwlock
-    ***The start of this repository is still the rwlock***
+    * ***The star of this repository is still the rwlock***
 
 ## Setup instructions
 **Install dependencies :**
