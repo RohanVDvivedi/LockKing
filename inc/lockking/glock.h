@@ -72,7 +72,7 @@ struct glock
 	pthread_cond_t wait;
 	uint64_t waiters_count; // number of waiters waiting on the wait condition variable
 
-	uint64_t* locks_granted_count_per_glock_mode; // array of size lock_modes_count, 1 counter for each lock mode, this is dynamically allocated array
+	uint64_t* locks_granted_count_per_lock_mode; // array of size lock_modes_count, 1 counter for each lock mode, this is dynamically allocated array
 
 	const glock_matrix* gmatr;
 };

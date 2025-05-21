@@ -34,10 +34,10 @@ static pthread_mutex_t* get_glock_lock(glock* glock_p)
 
 int initialize_glock(glock* glock_p, const glock_matrix* gmatr, pthread_mutex_t* external_lock)
 {
-	glock_p->locks_granted_count_per_glock_mode = malloc(sizeof(uint64_t) * gmatr->lock_modes_count);
-	if(glock_p->locks_granted_count_per_glock_mode == NULL)
+	glock_p->locks_granted_count_per_lock_mode = malloc(sizeof(uint64_t) * gmatr->lock_modes_count);
+	if(glock_p->locks_granted_count_per_lock_mode == NULL)
 		return 0;
-	memset(glock_p->locks_granted_count_per_glock_mode, 0, sizeof(uint64_t) * gmatr->lock_modes_count);
+	memset(glock_p->locks_granted_count_per_lock_mode, 0, sizeof(uint64_t) * gmatr->lock_modes_count);
 
 	glock_p->gmatr = gmatr;
 	if(external_lock)
@@ -57,7 +57,7 @@ int initialize_glock(glock* glock_p, const glock_matrix* gmatr, pthread_mutex_t*
 
 void deinitialize_glock(glock* glock_p)
 {
-	free(glock_p->locks_granted_count_per_glock_mode);
+	free(glock_p->locks_granted_count_per_lock_mode);
 	if(glock_p->has_internal_lock)
 		pthread_mutex_destroy(&(glock_p->internal_lock));
 	pthread_cond_destroy(&(glock_p->wait));
@@ -70,7 +70,7 @@ static inline int can_grab_lock(const glock* glock_p, uint64_t lock_mode)
 	{
 		// you can not grab lock,
 		// if your lock_mode is incompatible with any of the lock_modes that have been already granted
-		if((glock_p->locks_granted_count_per_glock_mode[i] > 0) && !are_glock_modes_compatible_UNSAFE(glock_p->gmatr, i, lock_mode))
+		if((glock_p->locks_granted_count_per_lock_mode[i] > 0) && !are_glock_modes_compatible_UNSAFE(glock_p->gmatr, i, lock_mode))
 			return 0;
 	}
 	return 1;
@@ -78,6 +78,7 @@ static inline int can_grab_lock(const glock* glock_p, uint64_t lock_mode)
 
 int glock_lock(glock* glock_p, uint64_t lock_mode, uint64_t timeout_in_microseconds)
 {
+	// lock_mode must be within bounds
 	if(lock_mode >= glock_p->gmatr->lock_modes_count)
 		return 0;
 
@@ -103,7 +104,7 @@ int glock_lock(glock* glock_p, uint64_t lock_mode, uint64_t timeout_in_microseco
 	// if you can grab a lock, then grab it, else fail
 	if(can_grab_lock(glock_p, lock_mode))
 	{
-		glock_p->locks_granted_count_per_glock_mode[lock_mode]++;
+		glock_p->locks_granted_count_per_lock_mode[lock_mode]++;
 		res = 1;
 	}
 
@@ -115,9 +116,11 @@ int glock_lock(glock* glock_p, uint64_t lock_mode, uint64_t timeout_in_microseco
 
 int glock_transition_lock(glock* glock_p, uint64_t old_lock_mode, uint64_t new_lock_mode, uint64_t timeout_in_microseconds)
 {
+	// lock_mode must be within bounds
 	if(old_lock_mode >= glock_p->gmatr->lock_modes_count)
 		return 0;
 
+	// lock_mode must be within bounds
 	if(new_lock_mode >= glock_p->gmatr->lock_modes_count)
 		return 0;
 
@@ -127,7 +130,7 @@ int glock_transition_lock(glock* glock_p, uint64_t old_lock_mode, uint64_t new_l
 		pthread_mutex_lock(get_glock_lock(glock_p));
 
 	// make sure that the resource is locked
-	if(glock_p->locks_granted_count_per_glock_mode[old_lock_mode] == 0)
+	if(glock_p->locks_granted_count_per_lock_mode[old_lock_mode] == 0)
 		goto EXIT;
 
 	if(timeout_in_microseconds != NON_BLOCKING) // you are allowed to block only if (timeout_in_microseconds != NON_BLOCKING)
@@ -136,14 +139,14 @@ int glock_transition_lock(glock* glock_p, uint64_t old_lock_mode, uint64_t new_l
 		while(1) // block while you can not grab lock and there is no wait error
 		{
 			// simulate that you dont actually have your own lock in your old_lock_mode, and check if you grab the lock againt in new_lock_mode
-			glock_p->locks_granted_count_per_glock_mode[old_lock_mode]--;
+			glock_p->locks_granted_count_per_lock_mode[old_lock_mode]--;
 			if(can_grab_lock(glock_p, new_lock_mode))
 			{
-				glock_p->locks_granted_count_per_glock_mode[old_lock_mode]++;
+				glock_p->locks_granted_count_per_lock_mode[old_lock_mode]++;
 				break;
 			}
 			else
-				glock_p->locks_granted_count_per_glock_mode[old_lock_mode]++;
+				glock_p->locks_granted_count_per_lock_mode[old_lock_mode]++;
 
 			glock_p->waiters_count++;
 			if(timeout_in_microseconds == BLOCKING)
@@ -157,10 +160,10 @@ int glock_transition_lock(glock* glock_p, uint64_t old_lock_mode, uint64_t new_l
 		}
 	}
 
-	glock_p->locks_granted_count_per_glock_mode[old_lock_mode]--;
+	glock_p->locks_granted_count_per_lock_mode[old_lock_mode]--;
 	if(can_grab_lock(glock_p, new_lock_mode))
 	{
-		glock_p->locks_granted_count_per_glock_mode[new_lock_mode]++;
+		glock_p->locks_granted_count_per_lock_mode[new_lock_mode]++;
 		res = 1;
 
 		// wake up any waiters, we changed lock_mode, there could be some lock_mode waiter that could have become compatible with other threads
@@ -168,7 +171,7 @@ int glock_transition_lock(glock* glock_p, uint64_t old_lock_mode, uint64_t new_l
 			pthread_cond_broadcast(&(glock_p->wait));
 	}
 	else
-		glock_p->locks_granted_count_per_glock_mode[old_lock_mode]++;
+		glock_p->locks_granted_count_per_lock_mode[old_lock_mode]++;
 
 	EXIT:;
 	if(glock_p->has_internal_lock)
@@ -179,6 +182,7 @@ int glock_transition_lock(glock* glock_p, uint64_t old_lock_mode, uint64_t new_l
 
 int glock_unlock(glock* glock_p, uint64_t lock_mode)
 {
+	// lock_mode must be within bounds
 	if(lock_mode >= glock_p->gmatr->lock_modes_count)
 		return 0;
 
@@ -188,11 +192,11 @@ int glock_unlock(glock* glock_p, uint64_t lock_mode)
 		pthread_mutex_lock(get_glock_lock(glock_p));
 
 	// make sure that the resource is locked
-	if(glock_p->locks_granted_count_per_glock_mode[lock_mode] == 0)
+	if(glock_p->locks_granted_count_per_lock_mode[lock_mode] == 0)
 		goto EXIT;
 
 	// decrement the locks_granted_count, releasing lock for the specific lock_mode
-	glock_p->locks_granted_count_per_glock_mode[lock_mode]--;
+	glock_p->locks_granted_count_per_lock_mode[lock_mode]--;
 	res = 1;
 
 	// wake up any waiters
