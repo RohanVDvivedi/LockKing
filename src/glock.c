@@ -24,6 +24,14 @@ int are_glock_modes_compatible(const glock_matrix* gmatr, uint64_t M1, uint64_t 
 	return are_glock_modes_compatible_UNSAFE(gmatr, M1, M2);
 }
 
+static pthread_mutex_t* get_glock_lock(glock* glock_p)
+{
+	if(glock_p->has_internal_lock)
+		return &(glock_p->internal_lock);
+	else
+		return glock_p->external_lock;
+}
+
 int initialize_glock(glock* glock_p, const glock_matrix* gmatr, pthread_mutex_t* external_lock)
 {
 	glock_p->locks_granted_count_per_glock_mode = malloc(sizeof(uint64_t) * gmatr->lock_modes_count);
@@ -66,4 +74,60 @@ static inline int can_grab_lock(const glock* glock_p, uint64_t lock_mode)
 			return 0;
 	}
 	return 1;
+}
+
+int glock_lock(glock* glock_p, uint64_t lock_mode, uint64_t timeout_in_microseconds)
+{
+	if(lock_mode >= glock_p->gmatr->lock_modes_count)
+		return 0;
+
+	int res = 0;
+
+	if(glock_p->has_internal_lock)
+		pthread_mutex_lock(get_glock_lock(glock_p));
+
+	if(timeout_in_microseconds != NON_BLOCKING) // you are allowed to block only if (timeout_in_microseconds != NON_BLOCKING)
+	{
+		int wait_error = 0;
+		while(!can_grab_lock(glock_p, lock_mode) && !wait_error) // block while you can not grab lock and there is no wait error
+		{
+			glock_p->waiters_count++;
+			if(timeout_in_microseconds == BLOCKING)
+				wait_error = pthread_cond_wait(&(glock_p->wait), get_glock_lock(glock_p));
+			else
+				wait_error = pthread_cond_timedwait_for_microseconds(&(glock_p->wait), get_glock_lock(glock_p), &timeout_in_microseconds);
+			glock_p->waiters_count--;
+		}
+	}
+
+	// if you can grab a lock, then grab it, else fail
+	if(can_grab_lock(glock_p, lock_mode))
+	{
+		glock_p->locks_granted_count_per_glock_mode[lock_mode]++;
+		res = 1;
+	}
+
+	if(glock_p->has_internal_lock)
+		pthread_mutex_unlock(get_glock_lock(glock_p));
+
+	return res;
+}
+
+int glock_transition_lock(glock* glock_p, uint64_t old_lock_mode, uint64_t new_lock_mode, uint64_t timeout_in_microseconds)
+{
+	if(old_lock_mode >= glock_p->gmatr->lock_modes_count)
+		return 0;
+
+	if(new_lock_mode >= glock_p->gmatr->lock_modes_count)
+		return 0;
+
+	// TODO
+}
+
+int glock_unlock(glock* glock_p, uint64_t lock_mode)
+{
+	if(lock_mode >= glock_p->gmatr->lock_modes_count)
+		return 0;
+
+	// TODO
 }

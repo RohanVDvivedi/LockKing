@@ -6,6 +6,8 @@
 
 #include<cutlery/cutlery_math.h> // using min() and max() macros
 
+#include<lockking/lockking_commons.h>
+
 /*
 	glock is short for a Generalized Lock
 	It works on the principles if a lock-compatibility-matrix
