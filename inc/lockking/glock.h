@@ -75,7 +75,7 @@ struct glock
 	const glock_matrix* gmatr;
 };
 
-int initialize_glock(glock* glock_p, const glock_matrix* gmatr);
+int initialize_glock(glock* glock_p, const glock_matrix* gmatr, pthread_mutex_t* external_lock);
 void deinitialize_glock(glock* glock_p);
 
 int glock_lock(glock* glock_p, uint64_t lock_mode, uint64_t timeout_in_microseconds);
