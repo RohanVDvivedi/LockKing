@@ -129,5 +129,26 @@ int glock_unlock(glock* glock_p, uint64_t lock_mode)
 	if(lock_mode >= glock_p->gmatr->lock_modes_count)
 		return 0;
 
-	// TODO
+	int res = 0;
+
+	if(glock_p->has_internal_lock)
+		pthread_mutex_lock(get_glock_lock(glock_p));
+
+	// make sure that the resource is locked
+	if(glock_p->locks_granted_count_per_glock_mode[lock_mode] == 0)
+		goto EXIT;
+
+	// decrement the locks_granted_count, releasing lock for the specific lock_mode
+	glock_p->locks_granted_count_per_glock_mode[lock_mode]--;
+	res = 1;
+
+	// wake up any waiters, a writer will always prefer a writer to have the lock
+	if(glock_p->waiters_count > 0)
+		pthread_cond_signal(&(glock_p->wait));
+
+	EXIT:;
+	if(glock_p->has_internal_lock)
+		pthread_mutex_unlock(get_glock_lock(glock_p));
+
+	return res;
 }
