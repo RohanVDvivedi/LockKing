@@ -6,7 +6,7 @@
 #include<posixutils/pthread_cond_utils.h>
 
 // for internal use only
-static int are_glock_modes_compatible_UNSAFE(const glock_matrix* gmatr, uint64_t M1, uint64_t M2)
+static inline int are_glock_modes_compatible_UNSAFE(const glock_matrix* gmatr, uint64_t M1, uint64_t M2)
 {
 	return !!(gmatr->matrix[GLOCK_MATRIX_INDEX(M1, M2)]);
 }
@@ -53,4 +53,17 @@ void deinitialize_glock(glock* glock_p)
 	if(glock_p->has_internal_lock)
 		pthread_mutex_destroy(&(glock_p->internal_lock));
 	pthread_cond_destroy(&(glock_p->wait));
+}
+
+// lock_mde must be within bounds
+static inline int can_grab_lock(const glock* glock_p, uint64_t lock_mode)
+{
+	for(uint64_t i = 0; i < glock_p->gmatr->lock_modes_count; i++)
+	{
+		// you can not grab lock,
+		// if your lock_mode is incompatible with any of the lock_modes that have been already granted
+		if((glock_p->locks_granted_count_per_glock_mode[i] > 0) && !are_glock_modes_compatible_UNSAFE(glock_p->gmatr, i, lock_mode))
+			return 0;
+	}
+	return 1;
 }
