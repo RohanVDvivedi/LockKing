@@ -1,6 +1,9 @@
 #ifndef GLOCK_H
 #define GLOCK_H
 
+#include<pthread.h>
+#include<stdint.h>
+
 #include<cutlery/cutlery_math.h> // using min() and max() macros
 
 /*
@@ -48,5 +51,28 @@ struct glock_matrix
 // gives the index for the corresponding pair of lock modes in the glock_matrix.matrix
 // same as min(M1,M2) + ( ( max(M1,M2) * (max(M1,M2)+1) ) /2 )
 #define GLOCK_MATRIX_INDEX(M1, M2) (min(MAKE_UINT64(M1),MAKE_UINT64(M2))+GLOCK_MATRIX_BASE(max(MAKE_UINT64(M1),MAKE_UINT64(M2))))
+
+int are_glock_modes_compatible(const glock_matrix* gmatr, uint64_t M1, uint64_t M2);
+
+//-----------------------------------------------------------------------------
+//------------- GLOCK - the lock itself is implemented below ------------------
+//-----------------------------------------------------------------------------
+
+typedef struct glock glock;
+struct glock
+{
+	int has_internal_lock : 1;
+	union{
+		pthread_mutex_t internal_lock;
+		pthread_mutex_t* external_lock;
+	};
+
+	pthread_cond_t wait;
+	uint64_t waiters_count; // number of waiters waiting on the wait condition variable
+
+	uint64_t* locks_granted_count_per_glock_mode; // array of size lock_modes_count, 1 counter for each lock mode, this is dynamically allocated array
+
+	const glock_matrix* gmatr;
+};
 
 #endif
