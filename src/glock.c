@@ -165,7 +165,7 @@ int glock_transition_lock(glock* glock_p, uint64_t old_lock_mode, uint64_t new_l
 
 		// wake up any waiters, we changed lock_mode, there could be some lock_mode waiter that could have become compatible with other threads
 		if(glock_p->waiters_count > 0)
-			pthread_cond_signal(&(glock_p->wait));
+			pthread_cond_broadcast(&(glock_p->wait));
 	}
 	else
 		glock_p->locks_granted_count_per_glock_mode[old_lock_mode]++;
@@ -197,7 +197,7 @@ int glock_unlock(glock* glock_p, uint64_t lock_mode)
 
 	// wake up any waiters
 	if(glock_p->waiters_count > 0)
-		pthread_cond_signal(&(glock_p->wait));
+		pthread_cond_broadcast(&(glock_p->wait));
 
 	EXIT:;
 	if(glock_p->has_internal_lock)
