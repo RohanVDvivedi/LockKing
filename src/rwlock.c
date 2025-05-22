@@ -308,7 +308,7 @@ int is_write_locked(rwlock* rwlock_p)
 	return res;
 }
 
-int has_waiters(rwlock* rwlock_p)
+int has_rwlock_waiters(rwlock* rwlock_p)
 {
 	if(rwlock_p->has_internal_lock)
 		pthread_mutex_lock(get_rwlock_lock(rwlock_p));
@@ -323,7 +323,7 @@ int has_waiters(rwlock* rwlock_p)
 	return res;
 }
 
-int is_referenced(rwlock* rwlock_p)
+int is_rwlock_referenced(rwlock* rwlock_p)
 {
 	if(rwlock_p->has_internal_lock)
 		pthread_mutex_lock(get_rwlock_lock(rwlock_p));

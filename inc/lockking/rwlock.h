@@ -57,12 +57,12 @@ int downgrade_lock(rwlock* rwlock_p);
 int read_unlock(rwlock* rwlock_p);
 int write_unlock(rwlock* rwlock_p);
 
-// use the below 4 functions only with an external lock held, else they give only instantaneous results
+// use the below 4 functions only with an external_lock held, else they give only instantaneous results
 
 int is_read_locked(rwlock* rwlock_p);
 int is_write_locked(rwlock* rwlock_p);
-int has_waiters(rwlock* rwlock_p);
-int is_referenced(rwlock* rwlock_p);
+int has_rwlock_waiters(rwlock* rwlock_p);
+int is_rwlock_referenced(rwlock* rwlock_p);
 
 /*
 	to define an api for shared lock and exclusive lock based nomenclature
