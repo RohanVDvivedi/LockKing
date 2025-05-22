@@ -2,7 +2,7 @@
 
 #include<posixutils/pthread_cond_utils.h>
 
-static pthread_mutex_t* get_rwlock_lock(rwlock* rwlock_p)
+static inline pthread_mutex_t* get_rwlock_lock(rwlock* rwlock_p)
 {
 	if(rwlock_p->has_internal_lock)
 		return &(rwlock_p->internal_lock);

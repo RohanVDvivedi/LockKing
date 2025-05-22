@@ -24,7 +24,7 @@ int are_glock_modes_compatible(const glock_matrix* gmatr, uint64_t M1, uint64_t 
 	return are_glock_modes_compatible_UNSAFE(gmatr, M1, M2);
 }
 
-static pthread_mutex_t* get_glock_lock(glock* glock_p)
+static inline pthread_mutex_t* get_glock_lock(glock* glock_p)
 {
 	if(glock_p->has_internal_lock)
 		return &(glock_p->internal_lock);
