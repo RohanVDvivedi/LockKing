@@ -209,3 +209,46 @@ int glock_unlock(glock* glock_p, uint64_t lock_mode)
 
 	return res;
 }
+
+int is_glock_locked(glock* glock_p)
+{
+	if(glock_p->has_internal_lock)
+		pthread_mutex_lock(get_glock_lock(glock_p));
+
+	int res = 0;
+	for(uint64_t i = 0; i < glock_p->gmatr->lock_modes_count && res == 0; i++) // if anyone has it locked, it is locked
+		res = res || (glock_p->locks_granted_count_per_lock_mode[i] > 0);
+
+	if(glock_p->has_internal_lock)
+		pthread_mutex_unlock(get_glock_lock(glock_p));
+
+	return res;
+}
+
+int has_glock_waiters(glock* glock_p)
+{
+	if(glock_p->has_internal_lock)
+		pthread_mutex_lock(get_glock_lock(glock_p));
+
+	int res = (glock_p->waiters_count > 0); // check for any waiters
+
+	if(glock_p->has_internal_lock)
+		pthread_mutex_unlock(get_glock_lock(glock_p));
+
+	return res;
+}
+
+int is_glock_referenced(glock* glock_p)
+{
+	if(glock_p->has_internal_lock)
+		pthread_mutex_lock(get_glock_lock(glock_p));
+
+	int res = (glock_p->waiters_count > 0); // check for any waiters
+	for(uint64_t i = 0; i < glock_p->gmatr->lock_modes_count && res == 0; i++) // or any one holding the lock
+		res = res || (glock_p->locks_granted_count_per_lock_mode[i] > 0);
+
+	if(glock_p->has_internal_lock)
+		pthread_mutex_unlock(get_glock_lock(glock_p));
+
+	return res;
+}

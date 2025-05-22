@@ -84,4 +84,10 @@ int glock_lock(glock* glock_p, uint64_t lock_mode, uint64_t timeout_in_microseco
 int glock_transition_lock(glock* glock_p, uint64_t old_lock_mode, uint64_t new_lock_mode, uint64_t timeout_in_microseconds);
 int glock_unlock(glock* glock_p, uint64_t lock_mode);
 
+// use the below 3 functions only with an external_lock held, else they give only instantaneous results
+
+int is_glock_locked(glock* glock_p);
+int has_glock_waiters(glock* glock_p);
+int is_glock_referenced(glock* glock_p);
+
 #endif
