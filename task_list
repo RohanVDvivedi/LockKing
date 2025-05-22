@@ -1,19 +1,2 @@
-(*future)
-  * a mutex will have lock compatibility matirx as below (if implemented using glock)
-           LOCK
-    LOCK   0
-  * a rwlock's lock compatibility matrix, in terms of glock could possibly look like this
-           Read  Write
-    Read   1     0
-    Write  0     0
-  * a template initialization of this lock_compatibility matrix should look like this
-  lock_compatibility_matrix m = {
-    3,
-    (uint8_t[ (3 * (3+1)) / 2 ]){
-          0,
-          1,2,
-          3,4,5
-    },
-  };
   review glock
   test glock
