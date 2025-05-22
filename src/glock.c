@@ -114,6 +114,20 @@ int glock_lock(glock* glock_p, uint64_t lock_mode, uint64_t timeout_in_microseco
 	return res;
 }
 
+// do ensure that you have the old_lock_mode held
+static inline int can_transition_lock(glock* glock_p, uint64_t old_lock_mode, uint64_t new_lock_mode)
+{
+	// assume you do not have the lock you currently hold
+	glock_p->locks_granted_count_per_lock_mode[old_lock_mode]--;
+
+	// now check if the other lock holders are okay with you having the lock in the new_lock_mode
+	int can_transition = can_grab_lock(glock_p, new_lock_mode);
+
+	// rever the prior change and return the result
+	glock_p->locks_granted_count_per_lock_mode[old_lock_mode]++;
+	return can_transition;
+}
+
 int glock_transition_lock(glock* glock_p, uint64_t old_lock_mode, uint64_t new_lock_mode, uint64_t timeout_in_microseconds)
 {
 	// lock_mode must be within bounds
@@ -136,33 +150,21 @@ int glock_transition_lock(glock* glock_p, uint64_t old_lock_mode, uint64_t new_l
 	if(timeout_in_microseconds != NON_BLOCKING) // you are allowed to block only if (timeout_in_microseconds != NON_BLOCKING)
 	{
 		int wait_error = 0;
-		while(1) // block while you can not grab lock and there is no wait error
+		while(!can_transition_lock(glock_p, old_lock_mode, new_lock_mode) && !wait_error) // block while you can not transition lock and there is no wait error
 		{
-			// simulate that you dont actually have your own lock in your old_lock_mode, and check if you grab the lock againt in new_lock_mode
-			glock_p->locks_granted_count_per_lock_mode[old_lock_mode]--;
-			if(can_grab_lock(glock_p, new_lock_mode))
-			{
-				glock_p->locks_granted_count_per_lock_mode[old_lock_mode]++;
-				break;
-			}
-			else
-				glock_p->locks_granted_count_per_lock_mode[old_lock_mode]++;
-
 			glock_p->waiters_count++;
 			if(timeout_in_microseconds == BLOCKING)
 				wait_error = pthread_cond_wait(&(glock_p->wait), get_glock_lock(glock_p));
 			else
 				wait_error = pthread_cond_timedwait_for_microseconds(&(glock_p->wait), get_glock_lock(glock_p), &timeout_in_microseconds);
 			glock_p->waiters_count--;
-
-			if(wait_error)
-				break;
 		}
 	}
 
-	glock_p->locks_granted_count_per_lock_mode[old_lock_mode]--;
-	if(can_grab_lock(glock_p, new_lock_mode))
+	if(can_transition_lock(glock_p, old_lock_mode, new_lock_mode))
 	{
+		// transition the lock
+		glock_p->locks_granted_count_per_lock_mode[old_lock_mode]--;
 		glock_p->locks_granted_count_per_lock_mode[new_lock_mode]++;
 		res = 1;
 
@@ -170,8 +172,6 @@ int glock_transition_lock(glock* glock_p, uint64_t old_lock_mode, uint64_t new_l
 		if(glock_p->waiters_count > 0)
 			pthread_cond_broadcast(&(glock_p->wait));
 	}
-	else
-		glock_p->locks_granted_count_per_lock_mode[old_lock_mode]++;
 
 	EXIT:;
 	if(glock_p->has_internal_lock)
