@@ -61,12 +61,12 @@ int are_glock_modes_compatible(const glock_matrix* gmatr, uint64_t M1, uint64_t 
 
 #define MODES_COUNT 4
 
-#define Smode  0
-#define Imode  1
-#define ISmode 2
-#define IXmode 3
+#define ISmode 0
+#define IXmode 1
+#define Smode  2
+#define Xmode  3
 
-glock_matrix hmat = {
+const glock_matrix hmat = {
 	.lock_modes_count = MODES_COUNT,
 	.matrix = (uint8_t[GLOCK_MATRIX_SIZE(MODES_COUNT)]){
 		// IS  IX  S   X
