@@ -27,6 +27,11 @@ It provides,
     * glock needs to allocate and intialize a dynamic array for counts of locks issued per lock mode, and so it's initialization could fail, unlike rwlock
     * ***The star of this repository is still the rwlock***
 
+**Now another thing you might be wondering is, "why would you need an external lock to manage the rwlock or glock?"** *(here external lock is your external mutex)*
+  * Note:: Remeber, if you plan to use external lock, it becomes your responsibility to hold that lock before calling any of the rwlock or glock functions, except for the initialize_* and deinitialize_* functions.
+  * This design pattern will allow you to do necessary bookkeeping before (or after) actually going into possibly-blocked state on taking or transitioning the lock.
+  * Imagine building a hashtable of lockable resources, now you can actually have a single mutex over the entire hashtable and the locks to protect everything, we still block but this happens over the condition variables internal to the lock, while releasing the external lock (Dont worry there are NON_BLOCKING calls too).
+
 ## Setup instructions
 **Install dependencies :**
   * [Cutlery](https://github.com/RohanVDvivedi/Cutlery)
