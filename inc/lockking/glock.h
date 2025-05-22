@@ -56,6 +56,28 @@ struct glock_matrix
 
 int are_glock_modes_compatible(const glock_matrix* gmatr, uint64_t M1, uint64_t M2);
 
+/*
+	For a traditional database hierarchial locks the glock_matrix definition looks like below
+
+#define MODES_COUNT 4
+
+#define Smode  0
+#define Imode  1
+#define ISmode 2
+#define IXmode 3
+
+glock_matrix hmat = {
+	.lock_modes_count = MODES_COUNT,
+	.matrix = (uint8_t[GLOCK_MATRIX_SIZE(MODES_COUNT)]){
+		// IS  IX  S   X
+		   1,               // IS
+		   1,  1,           // IX
+		   1,  0,  1,       // S
+		   0,  0,  0,  0,   // X
+	},
+};
+*/
+
 //-----------------------------------------------------------------------------
 //------------- GLOCK - the lock itself is implemented below ------------------
 //-----------------------------------------------------------------------------
