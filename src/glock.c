@@ -3,8 +3,6 @@
 #include<stdlib.h>
 #include<string.h>
 
-#include<posixutils/pthread_cond_utils.h>
-
 // for internal use only
 static inline int are_glock_modes_compatible_UNSAFE(const glock_matrix* gmatr, uint64_t M1, uint64_t M2)
 {
