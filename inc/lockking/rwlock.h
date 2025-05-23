@@ -4,7 +4,7 @@
 #include<pthread.h>
 #include<stdint.h>
 
-#include<lockking/lockking_commons.h>
+#include<posixutils/timespec_utils.h>
 
 // rwlock assumes that the thread count in your application will never be more than UINT64_MAX
 

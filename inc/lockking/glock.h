@@ -6,7 +6,7 @@
 
 #include<cutlery/cutlery_math.h> // using min() and max() macros
 
-#include<lockking/lockking_commons.h>
+#include<posixutils/timespec_utils.h>
 
 /*
 	glock is short for a Generalized Lock
