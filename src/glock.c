@@ -115,6 +115,10 @@ int glock_lock(glock* glock_p, uint64_t lock_mode, uint64_t timeout_in_microseco
 // do ensure that you have the old_lock_mode held
 static inline int can_transition_lock(glock* glock_p, uint64_t old_lock_mode, uint64_t new_lock_mode)
 {
+	// edge case : if old_lock_mode was same as the new_lock_mode to transition into, then succeed immediately
+	if(old_lock_mode == new_lock_mode)
+		return 1;
+
 	// assume you do not have the lock you currently hold
 	glock_p->locks_granted_count_per_lock_mode[old_lock_mode]--;
 
@@ -144,6 +148,13 @@ int glock_transition_lock(glock* glock_p, uint64_t old_lock_mode, uint64_t new_l
 	// make sure that the resource is locked
 	if(glock_p->locks_granted_count_per_lock_mode[old_lock_mode] == 0)
 		goto EXIT;
+
+	// edge case : if old_lock_mode was same as the new_lock_mode to transition into, then succeed immediately without waking anyone up
+	if(old_lock_mode == new_lock_mode)
+	{
+		res = 1;
+		goto EXIT;
+	}
 
 	if(timeout_in_microseconds != NON_BLOCKING) // you are allowed to block only if (timeout_in_microseconds != NON_BLOCKING)
 	{
