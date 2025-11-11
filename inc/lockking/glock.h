@@ -26,7 +26,7 @@ struct glock_matrix
 	uint8_t* matrix; // this matirx is not just a linear array
 	// the matrix ideally should consists of only 0 or 1 values, on all of the cells, and must be a symmetric matrix
 	// if matrix[M1][M2] says that the modes are compatible, the the same should be said for the matrix[M2][M1]
-	// for this reason the matrix is arranges as follows
+	// for this reason the matrix is arranged as follows
 	/*
 		for 4 lock modes, the matrix looks like this
 		matrix = {
@@ -102,6 +102,9 @@ struct glock
 int initialize_glock(glock* glock_p, const glock_matrix* gmatr, pthread_mutex_t* external_lock);
 void deinitialize_glock(glock* glock_p);
 
+// the timeout_in_microseconds parameter can be (NON_BLOCKING, any positive integer or BLOCKING)
+
+// *_lock and transition_lock functions may fail if NON_BLOCKING or if timeout_in_microseconds expired and the lock could not be taken
 int glock_lock(glock* glock_p, uint64_t lock_mode, uint64_t timeout_in_microseconds);
 int glock_transition_lock(glock* glock_p, uint64_t old_lock_mode, uint64_t new_lock_mode, uint64_t timeout_in_microseconds);
 int glock_unlock(glock* glock_p, uint64_t lock_mode);

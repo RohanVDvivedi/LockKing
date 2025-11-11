@@ -41,12 +41,14 @@ enum lock_preferring_type
 	WRITE_PREFERRING,
 };
 
-// *_lock and upgrade lock functions may fail if non_blocking = 1 and the lock can not be immediatley taken
+// the timeout_in_microseconds parameter can be (NON_BLOCKING, any positive integer or BLOCKING)
+
+// *_lock and upgrade lock functions may fail if NON_BLOCKING or if timeout_in_microseconds expired and the lock could not be taken
 int read_lock(rwlock* rwlock_p, lock_preferring_type preferring, uint64_t timeout_in_microseconds);
 int write_lock(rwlock* rwlock_p, uint64_t timeout_in_microseconds);
 
 // upgrades lock from reader to a writer
-// this may fail if there already is a reader thread waiting for an upgrade
+// this may also fail if there already is a reader thread waiting for an upgrade
 int upgrade_lock(rwlock* rwlock_p, uint64_t timeout_in_microseconds);
 
 // *_unlock and downgrade function never blocks
