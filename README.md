@@ -30,7 +30,7 @@ It provides,
 **Now another thing you might be wondering is, "why would you need an external lock to manage the rwlock or glock?"** *(here external lock is your external mutex)*
   * Note:: Remeber, if you plan to use external lock, it becomes your responsibility to hold that lock before calling any of the rwlock or glock functions, except for the initialize_* and deinitialize_* functions.
   * This design pattern will allow you to do necessary bookkeeping before (or after) actually going into possibly-blocked state on taking or transitioning the lock.
-  * Imagine building a hashtable of lockable resources, now you can actually have a single mutex over the entire hashtable and the locks to protect everything, we still block but this happens over the condition variables internal to the lock, while releasing the external lock (Dont worry there are NON_BLOCKING calls too).
+  * Imagine building a hashtable of lockable resources, now you can actually have a single mutex over the entire hashtable and the locks to protect everything that is lockable, we still block but this happens over the condition variables internal to the locks (not the external mutex, that just protects the bookkeeping hashtable), while acquiring/releasing the external lock (Dont worry there are NON_BLOCKING calls too).
 
 ## Setup instructions
 **Install dependencies :**
