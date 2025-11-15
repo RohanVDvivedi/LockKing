@@ -62,10 +62,7 @@ int read_lock(rwlock* rwlock_p, lock_preferring_type preferring, uint64_t timeou
 		while(!can_grab_read_lock(rwlock_p, preferring) && !wait_error) // block while you can not grab lock and there is no wait error
 		{
 			rwlock_p->readers_waiting_count++;
-			if(timeout_in_microseconds == BLOCKING)
-				wait_error = pthread_cond_wait(&(rwlock_p->read_wait), get_rwlock_lock(rwlock_p));
-			else
-				wait_error = pthread_cond_timedwait_for_microseconds(&(rwlock_p->read_wait), get_rwlock_lock(rwlock_p), &timeout_in_microseconds);
+			wait_error = pthread_cond_timedwait_for_microseconds(&(rwlock_p->read_wait), get_rwlock_lock(rwlock_p), &timeout_in_microseconds);
 			rwlock_p->readers_waiting_count--;
 		}
 	}
@@ -103,11 +100,8 @@ int write_lock(rwlock* rwlock_p, uint64_t timeout_in_microseconds)
 		while(!can_grab_write_lock(rwlock_p) && !wait_error) // block while you can not grab lock and there is no wait error
 		{
 			rwlock_p->writers_waiting_count++;
-			if(timeout_in_microseconds == BLOCKING)
-				wait_error = pthread_cond_wait(&(rwlock_p->write_wait), get_rwlock_lock(rwlock_p));
-			else
-				wait_error = pthread_cond_timedwait_for_microseconds(&(rwlock_p->write_wait), get_rwlock_lock(rwlock_p), &timeout_in_microseconds);
-			was_blocked = 1; // we were just blocked in the lines above
+			wait_error = pthread_cond_timedwait_for_microseconds(&(rwlock_p->write_wait), get_rwlock_lock(rwlock_p), &timeout_in_microseconds);
+			was_blocked = 1; // we were just blocked in the line above
 			rwlock_p->writers_waiting_count--;
 		}
 	}
@@ -192,11 +186,8 @@ int upgrade_lock(rwlock* rwlock_p, uint64_t timeout_in_microseconds)
 		while(!can_upgrade_lock(rwlock_p) && !wait_error) // block while you can not grab lock and there is no wait error
 		{
 			rwlock_p->upgraders_waiting_count++;
-			if(timeout_in_microseconds == BLOCKING)
-				wait_error = pthread_cond_wait(&(rwlock_p->upgrade_wait), get_rwlock_lock(rwlock_p));
-			else
-				wait_error = pthread_cond_timedwait_for_microseconds(&(rwlock_p->upgrade_wait), get_rwlock_lock(rwlock_p), &timeout_in_microseconds);
-			was_blocked = 1; // we were just blocked in the lines above
+			wait_error = pthread_cond_timedwait_for_microseconds(&(rwlock_p->upgrade_wait), get_rwlock_lock(rwlock_p), &timeout_in_microseconds);
+			was_blocked = 1; // we were just blocked in the line above
 			rwlock_p->upgraders_waiting_count--;
 		}
 	}

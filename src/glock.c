@@ -85,16 +85,12 @@ int glock_lock(glock* glock_p, uint64_t lock_mode, uint64_t timeout_in_microseco
 	if(glock_p->has_internal_lock)
 		pthread_mutex_lock(get_glock_lock(glock_p));
 
-	if(timeout_in_microseconds != NON_BLOCKING) // you are allowed to block only if (timeout_in_microseconds != NON_BLOCKING)
 	{
 		int wait_error = 0;
 		while(!can_grab_lock(glock_p, lock_mode) && !wait_error) // block while you can not grab lock and there is no wait error
 		{
 			glock_p->waiters_count++;
-			if(timeout_in_microseconds == BLOCKING)
-				wait_error = pthread_cond_wait(&(glock_p->wait), get_glock_lock(glock_p));
-			else
-				wait_error = pthread_cond_timedwait_for_microseconds(&(glock_p->wait), get_glock_lock(glock_p), &timeout_in_microseconds);
+			wait_error = pthread_cond_timedwait_for_microseconds(&(glock_p->wait), get_glock_lock(glock_p), &timeout_in_microseconds);
 			glock_p->waiters_count--;
 		}
 	}
@@ -156,16 +152,12 @@ int glock_transition_lock(glock* glock_p, uint64_t old_lock_mode, uint64_t new_l
 		goto EXIT;
 	}
 
-	if(timeout_in_microseconds != NON_BLOCKING) // you are allowed to block only if (timeout_in_microseconds != NON_BLOCKING)
 	{
 		int wait_error = 0;
 		while(!can_transition_lock(glock_p, old_lock_mode, new_lock_mode) && !wait_error) // block while you can not transition lock and there is no wait error
 		{
 			glock_p->waiters_count++;
-			if(timeout_in_microseconds == BLOCKING)
-				wait_error = pthread_cond_wait(&(glock_p->wait), get_glock_lock(glock_p));
-			else
-				wait_error = pthread_cond_timedwait_for_microseconds(&(glock_p->wait), get_glock_lock(glock_p), &timeout_in_microseconds);
+			wait_error = pthread_cond_timedwait_for_microseconds(&(glock_p->wait), get_glock_lock(glock_p), &timeout_in_microseconds);
 			glock_p->waiters_count--;
 		}
 	}
