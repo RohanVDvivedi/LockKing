@@ -86,6 +86,9 @@ typedef struct glock glock;
 struct glock
 {
 	int has_internal_lock : 1;
+
+	const char _DUMMY_SEPARATOR; // separates has_internal_lock from mutex locked aftributes below
+
 	union{
 		pthread_mutex_t internal_lock;
 		pthread_mutex_t* external_lock;
