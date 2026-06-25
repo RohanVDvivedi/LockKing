@@ -85,7 +85,7 @@ const glock_matrix hmat = {
 typedef struct glock glock;
 struct glock
 {
-	int has_internal_lock : 1;
+	unsigned int has_internal_lock : 1;
 
 	const char _DUMMY_SEPARATOR; // separates has_internal_lock from mutex locked aftributes below
 
